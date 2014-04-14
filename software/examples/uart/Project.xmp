@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="Windows-1252" ?>
+<TKStudioProject Name="Project" ProjectGUID="{206D3335-7599-4a49-8EB3-C2FAD96A0310}" BuildTool="15" ToolVer="default" Version="3.00" Author="YinHandong[Òüº®¶¬]">
+    <Configurations>
+        <Configuration Name="Output" OP="0" XROM="0,0,0,0#0,0,0,0#0,0,0,0" XRAM="0,0,0,0#0,0,0,0#0,0,0,0" OldName="Output" OutBig="0" McLib="0" CLK="12.000000" Cross="0" IROM="0,0,0,0#0,0,0,0" IRAM="1,0x40000000,0x00001000,0#0,0,0,0" OldCPU="S3C2440A" OPTDBG="1,-1,1,1,1,0,()" DEVICE="S3C2440A" VENDOR="Samsung" FAMINY="3" SIMCLK="12.000000" cfgModify="0">
+            <MDK_Output OutName="0,.\Output\Project" OutType="1" OutBatch="0" OutHex="2" OutList="0,.\Output" Debug="1" Browse="0" />
+            <MDK_User BfC="0,()#0,()" BfB="0,()#0,()" AfB="0,()#0,()" Beep="1" SDebug="0" />
+            <MDK_CParam Def="" uDef="" Inc=".\System;.\User;.\Hardware" Misc="" Opt="2,0" Code="0,1,0,0,0,0" Language="0,0,0,0" List="0" />
+            <MDK_AsmParam Def="" uDef="" Inc="" Misc="" Code="0,0,0,0,0,0" Language="0" List="1,1" />
+            <MDK_Linker Misc="" UseDef="0" Code="0,0,0,1,()" Sct=".\Output\Project.sct" List="1,1,1,1,1,1,1,1,1" first="" Rom="0x00000000" Ram="0x10000000" />
+            <MDK_Debug DbgType="0" sfSIM="0,1,(),()" hwSIM="1,1,1,()" Drv="(),()" SrvOpt="" />
+            <DeviceProperties Item0='BOOK0=DATASHTS\SAMSUNG\S3C2440_UM.PDF(&quot;User&apos;s Manual&quot;)' Item1="CPU=IRAM(0x40000000-0x40000FFF) CLOCK(12000000) CPUTYPE(ARM920T)" Item2='FLDLL=UL2ARM(-UV2077N9E -O40 -S0 -C0 -N00(&quot;ARM920T Core&quot;) -D00(0032409D) -L00(4) -FO7 -FD40000000 -FC1000 -FN1 -FF0S3C2440_NAND_SP -FS030000000 -FL07FFC000)' Item3='MON=SARM.DLL(&quot;&quot;) TARMSS9.DLL(&quot;-pS3C2440A&quot;)' Item4='REGFILE=S3C2440.H(&quot;Samsung&quot;)' Item5='SFILE=&quot;STARTUP\Samsung\S3C2440.s&quot; (&quot;Samsung S3C2440 Startup Code&quot;)' Item6='SIM=SARM.DLL(&quot;&quot;)  DARMSS9.DLL(&quot;-pS3C2440A&quot;)' />
+            <DeviceDescription Description="ARM920T based high-performance 32-bit RISC Microcontroller with Thumb&#x0D;&#x0A;extensions, 16KB Instruction Cache, 16KB Data Cache, MMU, 4KB RAM,&#x0D;&#x0A;NAND Flash Boot Loader, On-chip PLL with Clock and Power Management,&#x0D;&#x0A;Interrupt Controller, External Memory Controller, LCD Controller (STN &amp; TFT),&#x0D;&#x0A;4ch DMA, 3-ch UART, Multi Master IIC-BUS Controller, IIS-BUS Controller, &#x0D;&#x0A;SD Host Interface V1.0 &amp; Multi-Media Card Interface V2.11, 2-ch SPI,&#x0D;&#x0A;AC97 CODEC Interface, Camera Interface, 2-port USB Host, USB Device,&#x0D;&#x0A;4-ch PWM Timers, 1-ch Timer, Watchdog Timer, 8-ch 10-bit A/D Converter&#x0D;&#x0A;and Touch Screen Interface, RTC with Calendar, &#x0D;&#x0A;130 General Perpose I/O pins." />
+        </Configuration>
+    </Configurations>
+    <Files>
+        <Filter Name="User">
+            <File RelativePath=".\User\main.c" FileType="1" Output="main.o" ro="0" bss="0" rw="0">
+                <Header RelativePath=".\System\s3c6410.h" />
+                <Header RelativePath="d:\Keil\ARM\RV31\INC\stdint.h" />
+                <Header RelativePath=".\Hardware\delay.h" />
+                <Header RelativePath=".\Hardware\led.h" />
+                <Header RelativePath=".\Hardware\uart.h" />
+                <Header RelativePath="d:\Keil\ARM\RV31\INC\stdio.h" />
+                <Header RelativePath=".\Hardware\glcd.h" />
+                <Header RelativePath="d:\Keil\ARM\RV31\INC\string.h" />
+                <Header RelativePath=".\Hardware\fonts.h" />
+                <Header RelativePath=".\Hardware\timer.h" />
+                <Header RelativePath=".\Hardware\clock.h" />
+            </File>
+        </Filter>
+        <Filter Name="System">
+            <File RelativePath=".\System\Startup.s" FileType="2" Output="Startup.o" ro="0" bss="0" rw="0" />
+        </Filter>
+        <Filter Name="Hardware">
+            <File RelativePath=".\Hardware\clock.c" FileType="1" Output="clock.o" ro="0" bss="0" rw="0">
+                <Header RelativePath=".\System\s3c6410.h" />
+                <Header RelativePath="d:\Keil\ARM\RV31\INC\stdint.h" />
+                <Header RelativePath=".\Hardware\clock.h" />
+            </File>
+            <File RelativePath=".\Hardware\delay.c" FileType="1" Output="delay.o" ro="0" bss="0" rw="0">
+                <Header RelativePath=".\Hardware\delay.h" />
+                <Header RelativePath="d:\Keil\ARM\RV31\INC\stdint.h" />
+            </File>
+            <File RelativePath=".\Hardware\glcd.c" FileType="1" Output="glcd.o" ro="0" bss="0" rw="0">
+                <Header RelativePath=".\Hardware\glcd.h" />
+                <Header RelativePath=".\System\s3c6410.h" />
+                <Header RelativePath="d:\Keil\ARM\RV31\INC\stdint.h" />
+                <Header RelativePath="d:\Keil\ARM\RV31\INC\string.h" />
+                <Header RelativePath=".\Hardware\uart.h" />
+                <Header RelativePath="d:\Keil\ARM\RV31\INC\stdio.h" />
+                <Header RelativePath=".\Hardware\fonts.h" />
+            </File>
+            <File RelativePath=".\Hardware\key.c" FileType="1" Output="key.o" ro="0" bss="0" rw="0">
+                <Header RelativePath=".\Hardware\key.h" />
+                <Header RelativePath=".\System\s3c6410.h" />
+                <Header RelativePath="d:\Keil\ARM\RV31\INC\stdint.h" />
+                <Header RelativePath=".\Hardware\delay.h" />
+                <Header RelativePath=".\Hardware\uart.h" />
+                <Header RelativePath="d:\Keil\ARM\RV31\INC\stdio.h" />
+            </File>
+            <File RelativePath=".\Hardware\led.c" FileType="1" Output="led.o" ro="0" bss="0" rw="0">
+                <Header RelativePath=".\Hardware\led.h" />
+                <Header RelativePath=".\System\s3c6410.h" />
+                <Header RelativePath="d:\Keil\ARM\RV31\INC\stdint.h" />
+            </File>
+            <File RelativePath=".\Hardware\timer.c" FileType="1" Output="timer.o" ro="0" bss="0" rw="0">
+                <Header RelativePath=".\Hardware\timer.h" />
+                <Header RelativePath=".\System\s3c6410.h" />
+                <Header RelativePath="d:\Keil\ARM\RV31\INC\stdint.h" />
+                <Header RelativePath=".\Hardware\glcd.h" />
+                <Header RelativePath="d:\Keil\ARM\RV31\INC\string.h" />
+                <Header RelativePath=".\Hardware\uart.h" />
+                <Header RelativePath="d:\Keil\ARM\RV31\INC\stdio.h" />
+                <Header RelativePath=".\Hardware\fonts.h" />
+            </File>
+            <File RelativePath=".\Hardware\uart.c" FileType="1" Output="uart.o" ro="0" bss="0" rw="0">
+                <Header RelativePath=".\Hardware\uart.h" />
+                <Header RelativePath=".\System\s3c6410.h" />
+                <Header RelativePath="d:\Keil\ARM\RV31\INC\stdint.h" />
+                <Header RelativePath="d:\Keil\ARM\RV31\INC\stdio.h" />
+                <Header RelativePath=".\Hardware\clock.h" />
+            </File>
+        </Filter>
+    </Files>
+</TKStudioProject>

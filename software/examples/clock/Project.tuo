@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="Windows-1252" ?>
+<TKStudioOptions Version="3.00" Author="YinHandong[Òüº®¶¬]">
+    <Projects OPTPES="98,96,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,">
+        <Project ProjectGUID="{206D3335-7599-4a49-8EB3-C2FAD96A0310}" Name="Project" ACTCFG="Output">
+            <TARGOPT Name="Output" OPTDF="0">
+                <OPTFFF VAL="&lt;.\hardware\key.c&gt; {0,1,-1,-1,0,0,682,315,45,983}" />
+                <OPTFFF VAL="&lt;.\hardware\clock.c&gt; {0,1,-1,-1,150,150,832,465,4,533}" />
+                <OPTFFF VAL="&lt;.\output\project.sct&gt; {0,1,-1,-1,125,125,807,463,0,453}" />
+                <OPTFFF VAL="&lt;.\User\main.c&gt; {2,3,-1,-1,125,125,807,463,0,148}" />
+            </TARGOPT>
+        </Project>
+    </Projects>
+</TKStudioOptions>
