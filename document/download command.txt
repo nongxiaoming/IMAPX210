@@ -1,0 +1,1 @@
+setenv serverip 192.168.1.111;setenv ipaddr 192.168.1.12;tftp 40000000 Project.bin;go 40000000
