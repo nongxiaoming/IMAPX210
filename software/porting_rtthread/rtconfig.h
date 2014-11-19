@@ -79,7 +79,7 @@
 // </section>
 
 // <section name="RT_USING_FINSH" description="Using finsh as shell, which is a C-Express shell" default="true" >
-//#define RT_USING_FINSH
+#define RT_USING_FINSH
 // <bool name="FINSH_USING_SYMTAB" description="Using symbol table in finsh shell" default="true" />
 #define FINSH_USING_SYMTAB
 // <bool name="FINSH_USING_DESCRIPTION" description="Keeping description in symbol table" default="true" />
@@ -191,7 +191,7 @@
 // </section>
 
 // <section name="RT_USING_RTGUI" description="RTGUI, a graphic user interface" default="true" >
-// #define RT_USING_RTGUI
+#define RT_USING_RTGUI
 // <integer name="RTGUI_NAME_MAX" description="Maximal size of RTGUI object name length" default="16" />
 #define RTGUI_NAME_MAX	16
 // <bool name="RTGUI_USING_FONT16" description="Support 16 weight font" default="true" />
@@ -201,7 +201,7 @@
 // <bool name="RTGUI_USING_FONTHZ" description="Support Chinese font" default="true" />
 #define RTGUI_USING_FONTHZ
 // <bool name="RTGUI_USING_DFS_FILERW" description="Using DFS as file interface " default="true" />
-#define RTGUI_USING_DFS_FILERW
+//#define RTGUI_USING_DFS_FILERW
 // <bool name="RTGUI_USING_HZ_FILE" description="Using font file as Chinese font" default="false" />
 // #define RTGUI_USING_HZ_FILE
 // <bool name="RTGUI_USING_HZ_BMP" description="Using Chinese bitmap font" default="true" />
