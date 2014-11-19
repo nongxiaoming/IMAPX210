@@ -36,59 +36,60 @@ void rt_hw_clock_init(void)
 {
 	unsigned int clk,i;
 
-	    /*PLL时钟选择外部时钟*/ 
+	    /* PLL时钟选择外部时钟 */ 
 	     PLL_CLKSEL=0x00;
 	     /**
-	     *HCLK  =APLL/12=132Mhz
-	     *HCLKX2=APLL/6=264Mhz
-	     *PCLK  =HCLK/(1*2)=66Mhz
+	     * HCLK  =APLL/12=132Mhz
+	     * HCLKX2=APLL/6=264Mhz
+	     * PCLK  =HCLK/(1*2)=66Mhz
 	     **/
 	    DIV_CFG0=(0x01<<16)|(0x06<<8)|(0x0c<<4)|0x02;
 	      
 	     /**
-	      *TIM0_CLK=EPLL/(7+1)=60Mhz
-	      *TIM1_CLK=EPLL/(7+1)=60Mhz
-	      *TV_CLK = TV_ECLK
-	      *CAM_CLK=EPLL/(5+1)=80Mhz
-	      *UART_CLK=EPLL/(5+1)=80Mhz
+	      * TIM0_CLK=EPLL/(7+1)=60Mhz
+	      * TIM1_CLK=EPLL/(7+1)=60Mhz
+	      * TV_CLK = TV_ECLK
+	      * CAM_CLK=EPLL/(5+1)=80Mhz
+	      * UART_CLK=EPLL/(5+1)=80Mhz
 	      **/
 	     DIV_CFG1=(0x05<<26)|(0x02<<24)|(0x05<<18)|(2<<16)|(0x03<<10)|(0x07<<7)|(0x02<<5)|(0x07<<2)|(0x02);
         /**
-	      *GPU_CLK=External clock=12Mhz
-	      *ASYN_CLK=DPLL/1=1200Mhz
-	      *USB_CLK = EPLL/(9+1)=48Mhz
-	      *IIS_CLK=EPLL/(5+1)=80Mhz
+	      * GPU_CLK=External clock=12Mhz
+	      * ASYN_CLK=DPLL/1=1200Mhz
+	      * USB_CLK = EPLL/(9+1)=48Mhz
+	      * IIS_CLK=EPLL/(5+1)=80Mhz
 	      **/	
 		 	 DIV_CFG2=0x16260102; 
-			  /**
-	      *SD0_CLK=External clock=12Mhz
-	      *SD1_CLK=External clock=12Mhz
-	      *SD2_CLK=External clock=12Mhz
+		 /**
+	      * SD0_CLK=External clock=12Mhz
+	      * SD1_CLK=External clock=12Mhz
+	      * SD2_CLK=External clock=12Mhz
 	      **/	
 		 	 DIV_CFG3=0x00030303; 
-			 	/**
-	      *IDS_CLK=EPLL/(7+1)=60Mhz
-	      *IDSTF_CLK=EPLL/(7+1)=60Mhz
+		 /**
+	      * IDS_CLK=EPLL/(7+1)=60Mhz
+	      * IDSTF_CLK=EPLL/(7+1)=60Mhz
 	      **/	
        DIV_CFG4=0x001e1e;
-      /*DPLL=12Mhz*2*(99+1)/(2*1)=1200Mhz*/
-	    DPLL_CFG=BIT31|(0x01<<12)|99;
-	    /*EPLL=12Mhz*2*(39+1)/(2*1)=480Mhz*/
+      /* DPLL=12Mhz*2*(79+1)/(2*1)=960Mhz */
+	    DPLL_CFG=BIT31|(0x01<<12)|79;
+	    /* EPLL=12Mhz*2*(39+1)/(2*1)=480Mhz */
 	    EPLL_CFG=BIT31|(0x01<<12)|39;
-	    /*APLL=12Mhz*2*(65+1)/1=1584Mhz*/
+	    /* APLL=12Mhz*2*(65+1)/1=1584Mhz */
 	    APLL_CFG=BIT31|65;
-	    /*等待PLL锁定*/
+	    /* 等待PLL锁定 */
 	    	while((PLL_LOCKED&0x07)==0)
 		{
      // debug("wait for APLL locked!\r\n");
  			for(i=500;i>0;i--);
-    }
+         }
+	  /* 设置CPU为异步模式，当CPU时钟使用DPLL时，要设为异步模式 */
+			CPUSYNC_CFG = 0x01;
 		/*切换PLL时钟输出到PLL输出*/
 		PLL_OCLKSEL=0x07;
 		/*打开GPU,VIDEN,VIDDE,MEMPL电源*/
 		NPOW_CFG =0x3f;
-/*设置CPU为异步模式，当CPU时钟使用DPLL时，要设为异步模式 */
-	 CPUSYNC_CFG=0x01;
+   
 
 	clk= imapx200_get_pll(APLL_CFG,12000000);
 	// debug("APLL:%dM\r\n",clk/1000000);

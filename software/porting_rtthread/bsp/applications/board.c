@@ -50,7 +50,7 @@ void rt_hw_board_init()
 {
 
     /* initialize system clock */
-    //rt_hw_clock_init();
+    rt_hw_clock_init();
     rt_kprintf("init hardware interrupt\r\n");
     /* init hardware interrupt */
     rt_hw_interrupt_init();
