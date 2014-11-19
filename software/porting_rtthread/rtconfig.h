@@ -29,7 +29,7 @@
 // <bool name="RT_USING_HOOK" description="Using hook functions" default="true" />
 #define RT_USING_HOOK
 // <section name="RT_USING_TIMER_SOFT" description="Using software timer which will start a thread to handle soft-timer" default="true" >
-// #define RT_USING_TIMER_SOFT
+#define RT_USING_TIMER_SOFT
 // <integer name="RT_TIMER_THREAD_PRIO" description="The priority level of timer thread" default="4" />
 #define RT_TIMER_THREAD_PRIO	8
 // <integer name="RT_TIMER_THREAD_STACK_SIZE" description="The stack size of timer thread" default="512" />
@@ -70,6 +70,10 @@
 #define RT_USING_SERIAL
 // <integer name="RT_UART_RX_BUFFER_SIZE" description="The buffer size for UART reception" default="64" />
 #define RT_UART_RX_BUFFER_SIZE    64
+// <bool name="RT_USING_SPI" description="Using SPI Device Driver Framework" default="true" />
+#define RT_USING_SPI
+// <bool name="RT_USING_I2C" description="Using I2C Device Driver Framework" default="true" />
+#define RT_USING_I2C
 // <section name="RT_USING_CONSOLE" description="Using console" default="true" >
 #define RT_USING_CONSOLE
 // <integer name="RT_CONSOLEBUF_SIZE" description="The buffer size for console output" default="128" />

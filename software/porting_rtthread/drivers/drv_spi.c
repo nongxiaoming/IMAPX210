@@ -18,7 +18,7 @@
 #include "board.h"
 #ifdef RT_USING_SPI
 #include "drv_spi.h"
-#include "lpc_ssp.h"
+
 /* private rt-thread spi ops function */
 static rt_err_t configure(struct rt_spi_device *device, struct rt_spi_configuration *configuration);
 static rt_uint32_t xfer(struct rt_spi_device *device, struct rt_spi_message *message);
@@ -206,43 +206,6 @@ static rt_uint32_t xfer(struct rt_spi_device *device, struct rt_spi_message *mes
     return message->length;
 };
 
-/** \brief init and register lpc spi bus.
- *
- * \param SPI: lpc SPI, e.g: LPC_SSP0,LPC_SSP1,LPC_SSP2.
- * \param lpc_spi: lpc spi bus struct.
- * \param spi_bus_name: spi bus name, e.g: "spi1"
- * \return
- *
- */
-rt_err_t lpc_spi_register(LPC_SSP_TypeDef *SPI,
-                          struct lpc_spi_bus *lpc_spi,
-                          const char *spi_bus_name)
-{
-    if (SPI == LPC_SSP0)
-    {
-        lpc_spi->SPI = LPC_SSP0;
-        /*enable SSP0 power/clock*/
-        LPC_SC->PCONP |= (0x01 << 21);
-    }
-    else if (SPI == LPC_SSP1)
-    {
-        lpc_spi->SPI = LPC_SSP1;
-        /*enable SSP1 power/clock*/
-        LPC_SC->PCONP |= (0x01 << 10);
-    }
-    else if (SPI == LPC_SSP2)
-    {
-        lpc_spi->SPI = LPC_SSP2;
-        /*enable SSP2 power/clock*/
-        LPC_SC->PCONP |= (0x01 << 20);
-    }
-    else
-    {
-        return RT_ENOSYS;
-    }
-
-    return rt_spi_bus_register(&lpc_spi->parent, spi_bus_name, &lpc_spi_ops);
-}
 /* SSP2
 SPI2_MOSI: P5.0
 SPI2_MISO: P5.1
