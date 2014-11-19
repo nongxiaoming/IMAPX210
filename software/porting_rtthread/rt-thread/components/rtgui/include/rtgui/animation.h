@@ -61,7 +61,31 @@ void rtgui_anim_engine_move(struct rtgui_dc *background,
                             int item_cnt,
                             int progress,
                             void *ctx);
+struct rtgui_anim_engine_fade_ctx
+{
+    /* Context used internally. */
+    int plvl;
+    int is_fade_out;
+};
+void rtgui_anim_engine_fade(struct rtgui_dc *background,
+                            struct rtgui_dc_buffer *background_buffer,
+                            struct rtgui_dc_buffer *items,
+                            int item_cnt,
+                            int progress,
+                            void *ctx);
 
+struct rtgui_anim_engine_roto_ctx
+{
+    struct rtgui_point pre_move, post_move;
+    double from_degree, to_degree;
+    int use_aa;
+};
+void rtgui_anim_engine_roto(struct rtgui_dc *background,
+                            struct rtgui_dc_buffer *background_buffer,
+                            struct rtgui_dc_buffer *items,
+                            int item_cnt,
+                            int progress,
+                            void *param);
 /* Animation API. */
 
 /** Create an animation instance.

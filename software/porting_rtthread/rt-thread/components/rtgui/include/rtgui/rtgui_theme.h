@@ -40,7 +40,7 @@ extern "C" {
 
     void rtgui_system_theme_init(void);
 
-    void rtgui_theme_draw_win(struct rtgui_topwin *win);
+    void rtgui_theme_draw_win(struct rtgui_wintitle *win);
     void rtgui_theme_draw_button(rtgui_button_t *btn);
     void rtgui_theme_draw_label(rtgui_label_t *label);
     void rtgui_theme_draw_textbox(rtgui_textbox_t *box);

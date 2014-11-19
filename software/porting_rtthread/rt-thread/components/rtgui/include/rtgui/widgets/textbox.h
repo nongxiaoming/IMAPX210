@@ -17,6 +17,7 @@
 #include <rtgui/rtgui_system.h>
 #include <rtgui/widgets/widget.h>
 #include <rtgui/widgets/container.h>
+#include <rtgui/widgets/caret.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -32,16 +33,17 @@ DECLARE_CLASS_TYPE(textbox);
 #define RTGUI_IS_TEXTBOX(obj)    (RTGUI_OBJECT_CHECK_TYPE((obj), RTGUI_TEXTBOX_TYPE))
 
 #define RTGUI_TEXTBOX_DEFAULT_WIDTH     80
-#define RTGUI_TEXTBOX_DEFAULT_HEIGHT        20
+#define RTGUI_TEXTBOX_DEFAULT_HEIGHT    20
 
-#define RTGUI_TEXTBOX_BORDER_WIDTH     1
+#define RTGUI_TEXTBOX_BORDER_WIDTH      1
 
-#define RTGUI_TEXTBOX_SINGLE        0x00
-#define RTGUI_TEXTBOX_MULTI         0x01 /* multiline */
-#define RTGUI_TEXTBOX_MASK          0x02 /* ciphertext */
-#define RTGUI_TEXTBOX_DIGIT         0x04 /* digit */
-#define RTGUI_TEXTBOX_CARET_SHOW    0x10
-#define RTGUI_TEXTBOX_CARET_STAT    0x20 /* unused */
+enum rtgui_textbox_flag
+{
+    RTGUI_TEXTBOX_SINGLE     = 0x00,
+    RTGUI_TEXTBOX_MULTI      = 0x01, /* multiline */
+    RTGUI_TEXTBOX_MASK       = 0x02, /* ciphertext */
+    RTGUI_TEXTBOX_DIGIT      = 0x04, /* digit */
+};
 
 #define RTGUI_TEXTBOX_LINE_MAX      128  /* text line cache */
 
@@ -51,7 +53,7 @@ struct rtgui_textbox
 	struct rtgui_widget parent;
 
 	/* text box flag */
-	rt_uint32_t flag;
+	enum rtgui_textbox_flag flag;
 
 	/* current line and position */
 	rt_uint16_t line, line_begin, position;
@@ -62,19 +64,17 @@ struct rtgui_textbox
 	rt_uint16_t first_pos;
 	char mask_char;
     /** a NULL terminated string that the textbox is holding */
-	unsigned char *text;
+	char *text;
 	rt_size_t font_width;
 
-	rtgui_timer_t *caret_timer;
-	rtgui_color_t *caret;
-	rtgui_rect_t  caret_rect;
+    struct rtgui_caret caret;
 
 	/* textbox private data */
 	rt_bool_t (*on_enter)(struct rtgui_textbox *box, rtgui_event_t *event);
 };
 typedef struct rtgui_textbox rtgui_textbox_t;
 
-rtgui_textbox_t *rtgui_textbox_create(const char *text, rt_uint32_t flag);
+rtgui_textbox_t *rtgui_textbox_create(const char *text, enum rtgui_textbox_flag flag);
 void rtgui_textbox_destroy(struct rtgui_textbox *box);
 
 rt_bool_t rtgui_textbox_event_handler(struct rtgui_object *object, struct rtgui_event *event);

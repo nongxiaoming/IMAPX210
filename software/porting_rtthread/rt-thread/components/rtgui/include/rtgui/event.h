@@ -148,12 +148,6 @@ struct rtgui_event_win_create
 {
     _RTGUI_EVENT_WIN_ELEMENTS
     struct rtgui_win *parent_window;
-#ifndef RTGUI_USING_SMALL_SIZE
-    /* the window title */
-    rt_uint8_t title[RTGUI_NAME_MAX];
-    /* the window extent */
-    struct rtgui_rect extent;
-#endif
 };
 
 struct rtgui_event_win_move
@@ -328,7 +322,7 @@ struct rtgui_event_kbd
     rt_uint16_t mod;        /* current key modifiers */
     rt_uint16_t unicode;    /* translated character */
 };
-#define RTGUI_KBD_IS_SET_CTRL(e)    ((e)->mod & (RTGUI_KMOD_LCTRL | RTGUI_KMOD_RCTRL)))
+#define RTGUI_KBD_IS_SET_CTRL(e)    ((e)->mod & (RTGUI_KMOD_LCTRL | RTGUI_KMOD_RCTRL))
 #define RTGUI_KBD_IS_SET_ALT(e)     ((e)->mod & (RTGUI_KMOD_LALT  | RTGUI_KMOD_RALT))
 #define RTGUI_KBD_IS_SET_SHIFT(e)   ((e)->mod & (RTGUI_KMOD_LSHIFT| RTGUI_KMOD_RSHIFT))
 #define RTGUI_KBD_IS_UP(e)          ((e)->type == RTGUI_KEYUP)

@@ -64,7 +64,7 @@ struct rtgui_dc *rtgui_dc_buffer_create(int w, int h)
 struct rtgui_dc *rtgui_dc_buffer_create_pixformat(rt_uint8_t pixel_format, int w, int h)
 {
 	struct rtgui_dc_buffer *dc;
-	
+
     dc = (struct rtgui_dc_buffer *)rtgui_malloc(sizeof(struct rtgui_dc_buffer));
     dc->parent.type   = RTGUI_DC_BUFFER;
     dc->parent.engine = &dc_buffer_engine;
@@ -79,6 +79,11 @@ struct rtgui_dc *rtgui_dc_buffer_create_pixformat(rt_uint8_t pixel_format, int w
     dc->pitch   = w * rtgui_color_get_bpp(pixel_format);
 
     dc->pixel = rtgui_malloc(h * dc->pitch);
+    if (!dc->pixel)
+    {
+        rtgui_free(dc);
+        return RT_NULL;
+    }
     rt_memset(dc->pixel, 0, h * dc->pitch);
 
     return &(dc->parent);
@@ -89,13 +94,13 @@ struct rtgui_dc *rtgui_dc_buffer_create_from_dc(struct rtgui_dc* dc)
 	struct rtgui_dc_buffer *buffer;
 
 	if (dc == RT_NULL) return RT_NULL;
-	
+
 	if (dc->type == RTGUI_DC_BUFFER)
 	{
  		struct rtgui_dc_buffer *d = (struct rtgui_dc_buffer*) dc;
 
 		/* buffer clone */
-		buffer = (struct rtgui_dc_buffer*) rtgui_dc_buffer_create_pixformat(d->pixel_format, 
+		buffer = (struct rtgui_dc_buffer*) rtgui_dc_buffer_create_pixformat(d->pixel_format,
             d->width, d->height);
 		if (buffer != RT_NULL)
 		{
@@ -264,7 +269,7 @@ static void rtgui_dc_buffer_fill_rect(struct rtgui_dc *self, struct rtgui_rect *
     struct rtgui_dc_buffer *dst;
 	unsigned r, g, b, a;
 	rtgui_rect_t _r, *rect;
-	
+
     dst = (struct rtgui_dc_buffer *)self;
 
 	_r = *dst_rect;
@@ -298,28 +303,62 @@ static void rtgui_dc_buffer_fill_rect(struct rtgui_dc *self, struct rtgui_rect *
 }
 
 /* blit a dc to another dc */
-static void rtgui_dc_buffer_blit(struct rtgui_dc *self, struct rtgui_point *dc_point, struct rtgui_dc *dest, rtgui_rect_t *rect)
+static void rtgui_dc_buffer_blit(struct rtgui_dc *self, struct rtgui_point *dc_pt, struct rtgui_dc *dest, rtgui_rect_t *rect)
 {
 	int pitch;
 	rt_uint16_t rect_width, rect_height;
 	struct rtgui_rect _rect, *dest_rect;
+    struct rtgui_point dc_point;
     struct rtgui_dc_buffer *dc = (struct rtgui_dc_buffer *)self;
 
-    if (rtgui_dc_get_visible(dest) == RT_FALSE) return;
+    if (rtgui_dc_get_visible(dest) == RT_FALSE)
+        return;
 
 	/* use the (0,0) origin point */
-    if (dc_point == RT_NULL) dc_point = &rtgui_empty_point; 
+    if (dc_pt == RT_NULL)
+        dc_point = rtgui_empty_point;
+    else
+    {
+        dc_point = *dc_pt;
+    }
+
+    rtgui_dc_get_rect(dest, &_rect);
 	/* use the rect of dest dc */
-	if (rect == RT_NULL) 
+	if (rect == RT_NULL)
 	{
-		rtgui_dc_get_rect(dest, &_rect);
 		dest_rect = &_rect;
 	}
-	else dest_rect = rect;
-	
+	else
+    {
+        dest_rect = rect;
+        if (dest_rect->x1 > _rect.x2 || dest_rect->y1 > _rect.y2)
+            return;
+        if (dest_rect->x1 < 0)
+        {
+            if (-dest_rect->x1 > dc->width)
+                return;
+            dc_point.x += -dest_rect->x1;
+            dest_rect->x1 = 0;
+        }
+        if (dest_rect->y1 < 0)
+        {
+            if (-dest_rect->y1 > dc->height)
+                return;
+            dc_point.y += -dest_rect->y1;
+            dest_rect->y1 = 0;
+        }
+        if (dest_rect->x2 > _rect.x2)
+            dest_rect->x2 = _rect.x2;
+        if (dest_rect->y2 > _rect.y2)
+            dest_rect->y2 = _rect.y2;
+    }
+
+    if (dc_point.x > dc->width || dc_point.y > dc->height)
+        return;
+
 	/* get the minimal width and height */
-	rect_width  = _UI_MIN(rtgui_rect_width(*dest_rect), dc->width - dc_point->x);
-	rect_height = _UI_MIN(rtgui_rect_height(*dest_rect), dc->height - dc_point->y);
+	rect_width  = _UI_MIN(rtgui_rect_width(*dest_rect), dc->width - dc_point.x);
+	rect_height = _UI_MIN(rtgui_rect_height(*dest_rect), dc->height - dc_point.y);
 
     if ((dest->type == RTGUI_DC_HW) || (dest->type == RTGUI_DC_CLIENT))
     {
@@ -330,7 +369,7 @@ static void rtgui_dc_buffer_blit(struct rtgui_dc *self, struct rtgui_point *dc_p
 
 		hw_driver = rtgui_graphic_driver_get_default();
         /* prepare pixel line */
-		pixels = _dc_get_pixel(dc, dc_point->x, dc_point->y);
+		pixels = _dc_get_pixel(dc, dc_point.x, dc_point.y);
 
         if (hw_driver->bits_per_pixel == _dc_get_bits_per_pixel(dc))
         {
@@ -340,9 +379,9 @@ static void rtgui_dc_buffer_blit(struct rtgui_dc *self, struct rtgui_point *dc_p
 				struct rtgui_dc_hw *hw;
 
 				hw = (struct rtgui_dc_hw*)dest;
-				
-				/* NOTES: the rect of DC is the logic coordination. 
-				 * It should be converted to client 
+
+				/* NOTES: the rect of DC is the logic coordination.
+				 * It should be converted to client
 				 */
 				if (dest_rect != &_rect)
 				{
@@ -353,7 +392,7 @@ static void rtgui_dc_buffer_blit(struct rtgui_dc *self, struct rtgui_point *dc_p
 				rtgui_rect_moveto(dest_rect, hw->owner->extent.x1, hw->owner->extent.y1);
 
 				pitch = rtgui_color_get_bpp(hw_driver->pixel_format) * rect_width;
-				hw_pixels = (rt_uint8_t*)(hw_driver->framebuffer + dest_rect->y1 * hw_driver->pitch + 
+				hw_pixels = (rt_uint8_t*)(hw_driver->framebuffer + dest_rect->y1 * hw_driver->pitch +
 					dest_rect->x1 * rtgui_color_get_bpp(hw_driver->pixel_format));
 
 				/* do the blit with memory copy */
@@ -377,9 +416,9 @@ static void rtgui_dc_buffer_blit(struct rtgui_dc *self, struct rtgui_point *dc_p
         else
         {
 			struct rtgui_graphic_driver *hw_driver;
-			
+
 			hw_driver = rtgui_graphic_driver_get_default();
-			
+
 			if ((dc->pixel_format == RTGRAPHIC_PIXEL_FORMAT_ARGB888) && (dest->type == RTGUI_DC_HW) &&
 				(hw_driver->framebuffer != RT_NULL) &&
 				(hw_driver->pixel_format == RTGRAPHIC_PIXEL_FORMAT_RGB565))
@@ -389,7 +428,7 @@ static void rtgui_dc_buffer_blit(struct rtgui_dc *self, struct rtgui_point *dc_p
 				struct rtgui_widget *owner;
 
 				/* blit source */
-				info.src = _dc_get_pixel(dc, dc_point->x, dc_point->y);
+				info.src = _dc_get_pixel(dc, dc_point.x, dc_point.y);
 				info.src_fmt = dc->pixel_format;
 				info.src_h = rect_height;
 				info.src_w = rect_width;
@@ -401,7 +440,7 @@ static void rtgui_dc_buffer_blit(struct rtgui_dc *self, struct rtgui_point *dc_p
 				/* blit destination */
 				info.dst = (rt_uint8_t*)hw_driver->framebuffer;
 				info.dst = info.dst + (owner->extent.y1 + dest_rect->y1) * hw_driver->pitch +
-            		(owner->extent.x1 + dest_rect->x1) * rtgui_color_get_bpp(hw_driver->pixel_format);
+                    (owner->extent.x1 + dest_rect->x1) * rtgui_color_get_bpp(hw_driver->pixel_format);
 				info.dst_fmt = hw_driver->pixel_format;
 				info.dst_h = rect_height;
 				info.dst_w = rect_width;
@@ -443,11 +482,11 @@ static void rtgui_dc_buffer_blit(struct rtgui_dc *self, struct rtgui_point *dc_p
 		{
 			int index;
 			rt_uint8_t *pixels, *dest_pixels;
-			
+
 			/* get pitch */
 			pitch = rect_width * rtgui_color_get_bpp(dc->pixel_format);
 
-			pixels = _dc_get_pixel(dc, dc_point->x, dc_point->y);
+			pixels = _dc_get_pixel(dc, dc_point.x, dc_point.y);
 			dest_pixels = _dc_get_pixel(dest_dc, dest_rect->x1, dest_rect->y1);
 
 			for (index = 0; index < rect_height; index ++)
@@ -463,7 +502,7 @@ static void rtgui_dc_buffer_blit(struct rtgui_dc *self, struct rtgui_point *dc_p
 			struct rtgui_blit_info info;
 
 			/* blit source */
-			info.src = _dc_get_pixel(dc, dc_point->x, dc_point->y);
+			info.src = _dc_get_pixel(dc, dc_point.x, dc_point.y);
 			info.src_fmt = dc->pixel_format;
 			info.src_h = rect_height;
 			info.src_w = rect_width;

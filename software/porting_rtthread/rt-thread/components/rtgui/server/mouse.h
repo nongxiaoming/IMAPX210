@@ -16,7 +16,7 @@
 
 #include <rtgui/rtgui.h>
 #include <rtgui/image.h>
-#include "topwin.h"
+#include <rtgui/widgets/window.h>
 
 struct rtgui_mouse_monitor
 {
@@ -32,7 +32,7 @@ void rtgui_mouse_init(void);
 void rtgui_mouse_fini(void);
 void rtgui_mouse_moveto(int x, int y);
 /* set cursor position */
-void rtgui_mouse_set_position(int x, int y); 
+void rtgui_mouse_set_position(int x, int y);
 
 void rtgui_mouse_set_cursor_enable(rt_bool_t enable);
 void rtgui_mouse_set_cursor(rtgui_image_t *cursor);
@@ -45,8 +45,8 @@ rt_bool_t rtgui_mouse_is_intersect(rtgui_rect_t *r);
 
 #ifdef RTGUI_USING_WINMOVE
 rt_bool_t rtgui_winrect_is_moved(void);
-void rtgui_winrect_set(struct rtgui_topwin *topwin);
-rt_bool_t rtgui_winrect_moved_done(rtgui_rect_t *winrect, struct rtgui_topwin **topwin);
+void rtgui_winrect_set(struct rtgui_win *win);
+rt_bool_t rtgui_winrect_moved_done(rtgui_rect_t *winrect, struct rtgui_win **win);
 #endif
 
 void rtgui_mouse_monitor_append(rtgui_list_t *head, rtgui_rect_t *rect);

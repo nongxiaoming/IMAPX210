@@ -80,11 +80,11 @@ struct rtgui_dc* rtgui_graphic_driver_get_rect_buffer(const struct rtgui_graphic
 
 	/* use virtual framebuffer in default */
 	if (driver == RT_NULL) driver = &_vfb_driver;
-	
+
 	rtgui_graphic_driver_get_rect(driver, &src);
 	rect = *r;
 	rtgui_rect_intersect(&src, &rect);
-	
+
 	w = rtgui_rect_width (rect);
 	h = rtgui_rect_height(rect);
 	if (!(w && h) || driver->framebuffer == RT_NULL) return RT_NULL;
@@ -98,7 +98,8 @@ struct rtgui_dc* rtgui_graphic_driver_get_rect_buffer(const struct rtgui_graphic
 
 	dst = buffer->pixel;
 
-    while (h--) {
+    while (h--)
+    {
 		memcpy(dst, pixel, buffer->pitch);
 
 		dst += buffer->pitch;

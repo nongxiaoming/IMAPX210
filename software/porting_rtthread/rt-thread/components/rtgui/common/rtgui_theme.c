@@ -20,6 +20,7 @@
 #include <rtgui/widgets/textbox.h>
 #include <rtgui/widgets/iconbox.h>
 #include <rtgui/widgets/title.h>
+#include <rtgui/widgets/window.h>
 #include <rtgui/rtgui_theme.h>
 #include <rtgui/rtgui_server.h>
 #include <rtgui/rtgui_system.h>
@@ -54,38 +55,47 @@ static const rt_uint8_t close_byte[14] = {
 };
 
 /* window drawing */
-void rtgui_theme_draw_win(struct rtgui_topwin *win)
+void rtgui_theme_draw_win(struct rtgui_wintitle *wint)
 {
     struct rtgui_dc *dc;
+    struct rtgui_win *win;
     rtgui_rect_t rect;
 
-    if (win->title == RT_NULL) return; /* no title and no board */
+    if (!wint)
+        return;
+
+    win = RTGUI_WIDGET(wint)->toplevel;
+    RT_ASSERT(win);
+
+    if (win->_title_wgt == RT_NULL)
+        return;
 
     /* begin drawing */
-    dc = rtgui_dc_begin_drawing(RTGUI_WIDGET(win->title));
-    if (dc == RT_NULL) return;
+    dc = rtgui_dc_begin_drawing(RTGUI_WIDGET(win->_title_wgt));
+    if (dc == RT_NULL)
+        return;
 
     /* get rect */
-    rtgui_widget_get_rect(RTGUI_WIDGET(win->title), &rect);
+    rtgui_widget_get_rect(RTGUI_WIDGET(win->_title_wgt), &rect);
 
     /* draw border */
-    if (win->flag & WINTITLE_BORDER)
+    if (!(win->style & RTGUI_WIN_STYLE_NO_BORDER))
     {
         rect.x2 -= 1;
         rect.y2 -= 1;
-        RTGUI_WIDGET_FOREGROUND(win->title) = RTGUI_RGB(212, 208, 200);
+        RTGUI_WIDGET_FOREGROUND(win->_title_wgt) = RTGUI_RGB(212, 208, 200);
         rtgui_dc_draw_hline(dc, rect.x1, rect.x2, rect.y1);
         rtgui_dc_draw_vline(dc, rect.x1, rect.y1, rect.y2);
 
-        RTGUI_WIDGET_FOREGROUND(win->title) = white;
+        RTGUI_WIDGET_FOREGROUND(win->_title_wgt) = white;
         rtgui_dc_draw_hline(dc, rect.x1 + 1, rect.x2 - 1, rect.y1 + 1);
         rtgui_dc_draw_vline(dc, rect.x1 + 1, rect.y1 + 1, rect.y2 - 1);
 
-        RTGUI_WIDGET_FOREGROUND(win->title) = RTGUI_RGB(128, 128, 128);
+        RTGUI_WIDGET_FOREGROUND(win->_title_wgt) = RTGUI_RGB(128, 128, 128);
         rtgui_dc_draw_hline(dc, rect.x1 + 1, rect.x2 - 1, rect.y2 - 1);
         rtgui_dc_draw_vline(dc, rect.x2 - 1, rect.y1 + 1, rect.y2);
 
-        RTGUI_WIDGET_FOREGROUND(win->title) = RTGUI_RGB(64, 64, 64);
+        RTGUI_WIDGET_FOREGROUND(win->_title_wgt) = RTGUI_RGB(64, 64, 64);
         rtgui_dc_draw_hline(dc, rect.x1, rect.x2, rect.y2);
         rtgui_dc_draw_vline(dc, rect.x2, rect.y1, rect.y2 + 1);
 
@@ -94,13 +104,13 @@ void rtgui_theme_draw_win(struct rtgui_topwin *win)
     }
 
     /* draw title */
-    if (!(win->flag & WINTITLE_NO))
+    if (!(win->style & RTGUI_WIN_STYLE_NO_TITLE))
     {
         rt_uint32_t index;
         rt_uint16_t r, g, b, delta;
 
 #define RGB_FACTOR  4
-        if (win->flag & WINTITLE_ACTIVATE)
+        if (win->flag & RTGUI_WIN_FLAG_ACTIVATE)
         {
             r = 10 << RGB_FACTOR;
             g = 36 << RGB_FACTOR;
@@ -117,8 +127,9 @@ void rtgui_theme_draw_win(struct rtgui_topwin *win)
 
         for (index = rect.x1; index < rect.x2 + 1; index ++)
         {
-            RTGUI_WIDGET_FOREGROUND(win->title) = RTGUI_RGB((r>>RGB_FACTOR), \
-                     (g>>RGB_FACTOR), (b>>RGB_FACTOR));
+            RTGUI_WIDGET_FOREGROUND(win->_title_wgt) = RTGUI_RGB((r>>RGB_FACTOR),
+                                                                 (g>>RGB_FACTOR),
+                                                                 (b>>RGB_FACTOR));
             rtgui_dc_draw_vline(dc, index, rect.y1, rect.y2);
             r += delta;
             g += delta;
@@ -126,21 +137,21 @@ void rtgui_theme_draw_win(struct rtgui_topwin *win)
         }
 #undef RGB_FACTOR
 
-        if (win->flag & WINTITLE_ACTIVATE)
+        if (win->flag & RTGUI_WIN_FLAG_ACTIVATE)
         {
-            RTGUI_WIDGET_FOREGROUND(win->title) = white;
+            RTGUI_WIDGET_FOREGROUND(win->_title_wgt) = white;
         }
         else
         {
-            RTGUI_WIDGET_FOREGROUND(win->title) = RTGUI_RGB(212, 208, 200);
+            RTGUI_WIDGET_FOREGROUND(win->_title_wgt) = RTGUI_RGB(212, 208, 200);
         }
 
         rect.x1 += 4;
         rect.y1 += 2;
         rect.y2 = rect.y1 + WINTITLE_CB_HEIGHT;
-        rtgui_dc_draw_text(dc, rtgui_wintitle_get_title(win->title), &rect);
+        rtgui_dc_draw_text(dc, win->title, &rect);
 
-        if (win->flag & WINTITLE_CLOSEBOX)
+        if (win->style & RTGUI_WIN_STYLE_CLOSEBOX)
         {
             /* get close button rect */
             rtgui_rect_t box_rect = {0, 0, WINTITLE_CB_WIDTH, WINTITLE_CB_HEIGHT};
@@ -150,16 +161,16 @@ void rtgui_theme_draw_win(struct rtgui_topwin *win)
             rtgui_dc_fill_rect(dc, &box_rect);
 
             /* draw close box */
-            if (win->flag & WINTITLE_CB_PRESSED)
+            if (win->flag & RTGUI_WIN_FLAG_CB_PRESSED)
             {
                 rtgui_dc_draw_border(dc, &box_rect, RTGUI_BORDER_SUNKEN);
-                RTGUI_WIDGET_FOREGROUND(win->title) = red;
+                RTGUI_WIDGET_FOREGROUND(win->_title_wgt) = red;
                 rtgui_dc_draw_word(dc, box_rect.x1, box_rect.y1 + 6, 7, close_byte);
             }
             else
             {
                 rtgui_dc_draw_border(dc, &box_rect, RTGUI_BORDER_RAISE);
-                RTGUI_WIDGET_FOREGROUND(win->title) = black;
+                RTGUI_WIDGET_FOREGROUND(win->_title_wgt) = black;
                 rtgui_dc_draw_word(dc, box_rect.x1 - 1, box_rect.y1 + 5, 7, close_byte);
             }
         }
@@ -265,9 +276,6 @@ void rtgui_theme_draw_button(rtgui_button_t *btn)
 		}
 		else
 		{
-	        /* remove border */
-	        rtgui_rect_inflate(&rect, -2);
-
 	        /* draw text */
 	        rtgui_dc_draw_text(dc, rtgui_label_get_text(RTGUI_LABEL(btn)), &rect);
 		}
@@ -343,19 +351,6 @@ void rtgui_theme_draw_textbox(rtgui_textbox_t *box)
         else
         {
             rtgui_dc_draw_text(dc, (char*)box->text, &rect);
-        }
-
-        /* draw caret */
-        if (box->flag & RTGUI_TEXTBOX_CARET_SHOW)
-        {
-            rect.x1 += box->position * box->font_width;
-            rect.x2 = rect.x1 + box->font_width;
-
-            rect.y2 -= 2;
-            rect.y1 = rect.y2 - 3;
-
-            RTGUI_WIDGET_BACKGROUND(box) = black;
-            rtgui_dc_fill_rect(dc, &rect);
         }
     }
 

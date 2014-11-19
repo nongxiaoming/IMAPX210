@@ -189,6 +189,16 @@ rt_inline rt_bool_t _rtgui_application_dest_handle(
     if (wevent->wid != RT_NULL && wevent->wid->flag & RTGUI_WIN_FLAG_CLOSED)
         return RT_TRUE;
 
+    /* The dest window may have been destroyed when this event arrived. Check
+     * against this condition. NOTE: we cannot use the RTGUI_OBJECT because it
+     * may be invalid already. */
+    dest_object = (struct rtgui_object*)wevent->wid;
+    if ((dest_object->flag & RTGUI_OBJECT_FLAG_VALID) !=
+            RTGUI_OBJECT_FLAG_VALID || dest_object->type != RTGUI_WIN_TYPE)
+    {
+        return RT_TRUE;
+    }
+
     dest_object = RTGUI_OBJECT(wevent->wid);
     if (dest_object != RT_NULL)
     {
@@ -216,7 +226,7 @@ rt_bool_t rtgui_app_event_handler(struct rtgui_object *object, rtgui_event_t *ev
     switch (event->type)
     {
     case RTGUI_EVENT_PAINT:
-	case RTGUI_EVENT_VPAINT_REQ:
+    case RTGUI_EVENT_VPAINT_REQ:
     case RTGUI_EVENT_MOUSE_BUTTON:
     case RTGUI_EVENT_MOUSE_MOTION:
     case RTGUI_EVENT_CLIP_INFO:
@@ -225,6 +235,7 @@ rt_bool_t rtgui_app_event_handler(struct rtgui_object *object, rtgui_event_t *ev
     case RTGUI_EVENT_WIN_CLOSE:
     case RTGUI_EVENT_WIN_MOVE:
     case RTGUI_EVENT_KBD:
+    case RTGUI_EVENT_GESTURE:
         _rtgui_application_dest_handle(app, event);
         break;
 
@@ -395,7 +406,7 @@ void rtgui_app_set_main_win(struct rtgui_app *app, struct rtgui_win *win)
 }
 RTM_EXPORT(rtgui_app_set_main_win);
 
-struct rtgui_win* rtgui_app_get_main_win(struct rtgui_app *app)
+struct rtgui_win *rtgui_app_get_main_win(struct rtgui_app *app)
 {
     return RTGUI_WIN(app->main_object);
 }

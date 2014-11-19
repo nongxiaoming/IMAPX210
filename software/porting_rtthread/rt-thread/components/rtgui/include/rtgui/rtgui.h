@@ -41,6 +41,16 @@
 #define _UI_BITBYTES(bits)		((bits + 7)/8)
 #define _UI_ABS(x)				((x)>=0? (x):-(x))
 
+/* MDK, GCC and MSVC all support __restrict keyword. */
+#define RTGUI_RESTRICT      __restrict
+#ifdef _MSC_VER
+#define RTGUI_PURE
+#else
+/* GCC and MDK share the same attributes.
+ * TODO: IAR attributes. */
+#define RTGUI_PURE __attribute__((pure))
+#endif
+
 struct rtgui_event;
 
 struct rtgui_object;

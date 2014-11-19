@@ -225,7 +225,8 @@ void rtgui_widget_move_to_logic(rtgui_widget_t *widget, int dx, int dy)
     struct rtgui_list_node *node;
     rtgui_widget_t *child;
 
-    if (widget == RT_NULL) return;
+    if (widget == RT_NULL)
+        return;
 
     rtgui_rect_moveto(&(widget->extent), dx, dy);
 

@@ -20,14 +20,18 @@ static void _rtgui_object_constructor(rtgui_object_t *object)
     if (!object)
         return;
 
-    object->flag = RTGUI_OBJECT_FLAG_NONE;
+    object->flag = RTGUI_OBJECT_FLAG_NONE | RTGUI_OBJECT_FLAG_VALID;
     object->id   = (rt_uint32_t)object;
 }
 
 /* Destroys the object */
 static void _rtgui_object_destructor(rtgui_object_t *object)
 {
-    /* nothing */
+    /* Any valid objest should both have valid flag _and_ valid type. Only use
+     * flag is not enough because the chunk of memory may be reallocted to other
+     * object and thus the flag will become valid. */
+    object->flag = RTGUI_OBJECT_FLAG_NONE;
+    object->type = RT_NULL;
 }
 
 DEFINE_CLASS_TYPE(object, "object",
@@ -94,8 +98,8 @@ struct rtgui_object_information obj_info = {0, 0, 0};
 #endif
 
 /**
- * @brief Creates a new object: it calls the corresponding constructors 
- * (from the constructor of the base class to the constructor of the more 
+ * @brief Creates a new object: it calls the corresponding constructors
+ * (from the constructor of the base class to the constructor of the more
  * derived class) and then sets the values of the given properties
  *
  * @param object_type the type of object to create
@@ -128,9 +132,9 @@ RTM_EXPORT(rtgui_object_create);
 
 /**
  * @brief Destroys the object.
- * 
+ *
  * The object destructors will be called in inherited type order.
- * 
+ *
  * @param object the object to destroy
  */
 void rtgui_object_destroy(rtgui_object_t *object)
@@ -154,10 +158,10 @@ RTM_EXPORT(rtgui_object_destroy);
 
 /**
  * @brief Checks if the object can be cast to the specified type.
- * 
- * If the object doesn't inherit from the specified type, a warning 
+ *
+ * If the object doesn't inherit from the specified type, a warning
  * is displayed in the console but the object is returned anyway.
- * 
+ *
  * @param object the object to cast
  * @param type the type to which we cast the object
  * @return Returns the object
@@ -168,7 +172,7 @@ rtgui_object_t *rtgui_object_check_cast(rtgui_object_t *obj, const rtgui_type_t 
 
 	if (!rtgui_type_inherits_from(obj->type, obj_type))
 	{
-		rt_kprintf("%s[%d]: Invalid cast from \"%s\" to \"%s\"\n", func, line, 
+		rt_kprintf("%s[%d]: Invalid cast from \"%s\" to \"%s\"\n", func, line,
             rtgui_type_name_get(obj->type), rtgui_type_name_get(obj_type));
 	}
 
@@ -179,7 +183,7 @@ RTM_EXPORT(rtgui_object_check_cast);
 
 /**
  * @brief Gets the type of the object
- * 
+ *
  * @param object an object
  * @return the type of the object (RT_NULL on failure)
  */

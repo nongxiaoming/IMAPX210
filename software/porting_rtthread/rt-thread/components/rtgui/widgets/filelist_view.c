@@ -534,7 +534,7 @@ void rtgui_filelist_view_update_current(struct rtgui_filelist_view *view, rt_uin
 
 void rtgui_filelist_view_set_onchanged(rtgui_filelist_view_t *view, rtgui_event_handler_ptr func)
 {
-    view->on_changed=func;
+    view->on_changed = func;
 }
 
 static void rtgui_filelist_view_onenturn(struct rtgui_filelist_view *view)
@@ -699,8 +699,8 @@ rt_bool_t rtgui_filelist_view_event_handler(struct rtgui_object *object, struct 
 }
 
 rtgui_filelist_view_t *rtgui_filelist_view_create(const char *directory,
-        const char *pattern,
-        const rtgui_rect_t *rect)
+                                                  const char *pattern,
+                                                  const rtgui_rect_t *rect)
 {
     struct rtgui_filelist_view *view = RT_NULL;
 

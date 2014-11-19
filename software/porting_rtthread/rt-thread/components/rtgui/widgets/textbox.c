@@ -20,12 +20,12 @@
 #include <rtgui/rtgui_system.h>
 
 #include <ctype.h>
+#include <stdint.h>
 
 #include "text_encoding.h"
 
 #define TB_ABSPOS(tb)   ((tb)->first_pos + (tb)->position)
 
-static void rtgui_textbox_draw_caret(rtgui_textbox_t *box, rt_uint16_t position);
 static rt_bool_t rtgui_textbox_onkey(struct rtgui_object *widget, rtgui_event_t *event);
 static rt_bool_t rtgui_textbox_onunfocus(struct rtgui_object *widget, rtgui_event_t *event);
 
@@ -46,9 +46,7 @@ static void _rtgui_textbox_constructor(rtgui_textbox_t *box)
 	RTGUI_WIDGET_BACKGROUND(box) = white;
 	/* set default text align */
 	RTGUI_WIDGET_TEXTALIGN(box) = RTGUI_ALIGN_CENTER_VERTICAL;
-	/* set proper of control */
-	box->caret_timer = RT_NULL;
-	box->caret = RT_NULL;
+    rtgui_caret_init(&box->caret, RTGUI_WIDGET(box));
 
 	box->line = box->line_begin = box->position = 0;
 	box->flag = RTGUI_TEXTBOX_SINGLE;
@@ -78,16 +76,7 @@ static void _rtgui_textbox_deconstructor(rtgui_textbox_t *textbox)
 		rtgui_free(textbox->text);
 		textbox->text = RT_NULL;
 	}
-	if (textbox->caret_timer != RT_NULL)
-	{
-		rtgui_timer_destory(textbox->caret_timer);
-		textbox->caret_timer = RT_NULL;
-	}
-	if (textbox->caret != RT_NULL)
-	{
-		rtgui_free(textbox->caret);
-		textbox->caret = RT_NULL;
-	}
+    rtgui_caret_cleanup(&textbox->caret);
 }
 
 DEFINE_CLASS_TYPE(textbox, "textbox",
@@ -96,114 +85,46 @@ DEFINE_CLASS_TYPE(textbox, "textbox",
 				  _rtgui_textbox_deconstructor,
 				  sizeof(struct rtgui_textbox));
 
-static void rtgui_textbox_get_caret_rect(rtgui_textbox_t *box, rtgui_rect_t *rect, rt_uint16_t position)
+static void rtgui_textbox_get_caret_rect(rtgui_textbox_t *box,
+                                         rtgui_rect_t *rect,
+                                         rt_uint16_t position)
 {
-	int font_h, box_h;
+	int font_h;
 	rtgui_rect_t item_rect;
 
 	RT_ASSERT(box != RT_NULL);
 
-	rtgui_widget_get_rect(RTGUI_WIDGET(box), rect);
-
 	rtgui_font_get_metrics(RTGUI_WIDGET_FONT(box), "H", &item_rect);
 	font_h = rtgui_rect_height(item_rect);
     box->font_width = rtgui_rect_width(item_rect);
-	box_h = rtgui_rect_height(*rect);
 
-	rect->x1 += position * box->font_width + 2;
+	rtgui_widget_get_rect(RTGUI_WIDGET(box), rect);
+
+    rect->x1 = box->font_width * position + RTGUI_WIDGET_DEFAULT_MARGIN;
 	rect->x2 = rect->x1 + 2;
-	rect->y1 += (box_h - font_h) / 2;
+	rect->y1 += (rtgui_rect_height(*rect) - font_h) / 2;
 	rect->y2 = rect->y1 + font_h;
 }
 
 static void rtgui_textbox_init_caret(rtgui_textbox_t *box, rt_uint16_t position)
 {
-	int x, y;
-	rtgui_color_t color;
 	rtgui_rect_t rect;
-	int ofs = 0;
 
 	RT_ASSERT(box != RT_NULL);
 
-	if (!RTGUI_WIDGET_IS_FOCUSED(box))
-		return;
+	rtgui_textbox_get_caret_rect(box, &rect, position - box->first_pos);
 
-	rtgui_textbox_get_caret_rect(box, &box->caret_rect, position);
-	rect = box->caret_rect;
-	rtgui_widget_rect_to_device(RTGUI_WIDGET(box), &rect);
-
-	if (box->caret == RT_NULL)
-		box->caret = rtgui_malloc(rtgui_rect_width(rect) * rtgui_rect_height(rect) * sizeof(rtgui_color_t));
-
-	for (x = rect.x1; x < rect.x2; x++)
-	{
-		for (y = rect.y1; y < rect.y2; y++)
-		{
-			rtgui_graphic_driver_get_default()->ops->get_pixel(&color, x, y);
-			*(box->caret + ofs) = color;
-			ofs++;
-		}
-	}
-}
-
-/* draw caret */
-static void rtgui_textbox_draw_caret(rtgui_textbox_t *box, rt_uint16_t position)
-{
-	int x, y;
-	rtgui_color_t color;
-	rtgui_rect_t rect;
-	int ofs = 0;
-	struct rtgui_dc *dc;
-
-	RT_ASSERT(box != RT_NULL);
-	if (box->caret == RT_NULL)
-		return;
-
-	dc = rtgui_dc_begin_drawing(RTGUI_WIDGET(box));
-	if (dc == RT_NULL)
-		return;
-
-	rect = box->caret_rect;
-
-	for (x = rect.x1; x < rect.x2; x++)
-	{
-		for (y = rect.y1; y < rect.y2; y++)
-		{
-			color = *(box->caret + ofs);
-			ofs++;
-			if (box->flag & RTGUI_TEXTBOX_CARET_SHOW)
-			{
-				color = ~color;
-			}
-			rtgui_dc_draw_color_point(dc, x, y, color);
-		}
-	}
-
-	rtgui_dc_end_drawing(dc);
-}
-
-static void rtgui_textbox_timeout(rtgui_timer_t *timer, void *parameter)
-{
-	rtgui_textbox_t *box;
-
-	box = RTGUI_TEXTBOX(parameter);
-	/* set caret flag */
-	if (box->flag & RTGUI_TEXTBOX_CARET_SHOW)
-		box->flag &= ~RTGUI_TEXTBOX_CARET_SHOW;
-	else
-		box->flag |= RTGUI_TEXTBOX_CARET_SHOW;
-	rtgui_textbox_draw_caret(box, box->position);
+    rtgui_caret_fill(&box->caret, &rect, box->text + position);
 }
 
 static void rtgui_textbox_onmouse(rtgui_textbox_t *box, struct rtgui_event_mouse *event)
 {
 	rt_size_t length;
-	rt_uint16_t posbak = box->position;
 
 	RT_ASSERT(box != RT_NULL);
 	RT_ASSERT(event != RT_NULL);
 
-	length = rt_strlen((char*)box->text);
+	length = rt_strlen(box->text);
 
 	if (event->button & RTGUI_MOUSE_BUTTON_LEFT && event->button & RTGUI_MOUSE_BUTTON_DOWN)
 	{
@@ -217,28 +138,25 @@ static void rtgui_textbox_onmouse(rtgui_textbox_t *box, struct rtgui_event_mouse
 		}
 		else if (x > (length - box->first_pos) * box->font_width)
 		{
+            /* Hit beyond the end of the line. */
 			box->position = length - box->first_pos;
 		}
 		else
 		{
-			box->position = x / box->font_width;
+            struct rtgui_char_position cpos;
+            int offset = x / box->font_width;
+
+            cpos = _string_char_width(box->text, length, box->first_pos + offset);
+			box->position = offset - (cpos.char_width - cpos.remain);
 		}
 
-		if (box->flag & RTGUI_TEXTBOX_CARET_SHOW)
+		if (rtgui_caret_is_shown(&box->caret))
 		{
-			if (box->caret_timer != RT_NULL)
-				rtgui_timer_stop(box->caret_timer);
-
-			box->flag &= ~RTGUI_TEXTBOX_CARET_SHOW;
-			rtgui_textbox_draw_caret(box, posbak);
-
-			if (box->caret_timer != RT_NULL)
-				rtgui_timer_start(box->caret_timer);
+			rtgui_caret_clear(&box->caret);
 		}
 
-		rtgui_textbox_init_caret(box, box->position);
-		box->flag |= RTGUI_TEXTBOX_CARET_SHOW;
-		rtgui_textbox_draw_caret(box, box->position);
+		rtgui_textbox_init_caret(box, TB_ABSPOS(box));
+		rtgui_caret_show(&box->caret);
 	}
 }
 
@@ -247,7 +165,6 @@ static rt_bool_t rtgui_textbox_onkey(struct rtgui_object *widget, rtgui_event_t 
 	rtgui_textbox_t *box = RTGUI_TEXTBOX(widget);
 	struct rtgui_event_kbd *ekbd = (struct rtgui_event_kbd *)event;
 	rt_size_t length;
-	rt_uint16_t posbak = box->position;
 
 	RT_ASSERT(box != RT_NULL);
 	RT_ASSERT(ekbd != RT_NULL);
@@ -268,17 +185,17 @@ static rt_bool_t rtgui_textbox_onkey(struct rtgui_object *widget, rtgui_event_t 
 		box->dis_length = ((rtgui_rect_width(rect) - 5) / box->font_width) & ~0x1;
 	}
 
-	length = rt_strlen((char*)box->text);
+	length = rt_strlen(box->text);
 	if (ekbd->key == RTGUIK_DELETE)
 	{
         int chw;
-        unsigned char *c;
+        char *c;
 
         if (TB_ABSPOS(box) == length)
         {
             goto _exit;
         }
-        chw = _string_char_width((char*)box->text, length, TB_ABSPOS(box)).char_width;
+        chw = _string_char_width(box->text, length, TB_ABSPOS(box)).char_width;
 
         /* remove character */
         for (c = &box->text[TB_ABSPOS(box)]; c[chw] != '\0'; c++)
@@ -296,7 +213,7 @@ static rt_bool_t rtgui_textbox_onkey(struct rtgui_object *widget, rtgui_event_t 
             if(box->first_pos > box->dis_length)
             {
                 int head_fix;
-                int chw = _string_char_width((char*)box->text, length, TB_ABSPOS(box) - 1).char_width;
+                int chw = _string_char_width(box->text, length, TB_ABSPOS(box) - 1).char_width;
 
                 rt_memmove(box->text + TB_ABSPOS(box) - chw,
                            box->text + TB_ABSPOS(box),
@@ -304,7 +221,7 @@ static rt_bool_t rtgui_textbox_onkey(struct rtgui_object *widget, rtgui_event_t 
 
                 head_fix = 0;
                 /* FIXME: */
-                if (box->text[box->first_pos - box->dis_length - chw] > 0x80)
+                if (box->text[box->first_pos - box->dis_length - chw] & 0x80)
                 {
                     int i;
 
@@ -312,7 +229,7 @@ static rt_bool_t rtgui_textbox_onkey(struct rtgui_object *widget, rtgui_event_t 
                          i < box->first_pos;
                          i++)
                     {
-                        if (box->text[i] > 0x80)
+                        if (box->text[i] & 0x80)
                             head_fix++;
                         else
                             break;
@@ -329,7 +246,7 @@ static rt_bool_t rtgui_textbox_onkey(struct rtgui_object *widget, rtgui_event_t 
             else
             {
                 int chw;
-                if (box->text[TB_ABSPOS(box) - 1] < 0x80)
+                if (!(box->text[TB_ABSPOS(box) - 1] & 0x80))
                 {
                     /* also copy the \0 */
                     rt_memmove(box->text + TB_ABSPOS(box) - 1,
@@ -350,10 +267,10 @@ static rt_bool_t rtgui_textbox_onkey(struct rtgui_object *widget, rtgui_event_t 
 		}
 		else
 		{
-            unsigned char *c;
+            char *c;
             int chw;
 
-            chw = _string_char_width((char*)box->text, length, TB_ABSPOS(box) - 1).char_width;
+            chw = _string_char_width(box->text, length, TB_ABSPOS(box) - 1).char_width;
 
             /* remove character */
             for (c = &box->text[TB_ABSPOS(box) - chw]; c[chw] != '\0'; c++)
@@ -370,7 +287,7 @@ static rt_bool_t rtgui_textbox_onkey(struct rtgui_object *widget, rtgui_event_t 
         if (box->first_pos == 0 && box->position == 0)
             goto _exit;
 
-        if (box->text[TB_ABSPOS(box) - 1] > 0x80)
+        if (box->text[TB_ABSPOS(box) - 1] & 0x80)
             chw = 2;
         else
             chw = 1;
@@ -393,7 +310,7 @@ static rt_bool_t rtgui_textbox_onkey(struct rtgui_object *widget, rtgui_event_t 
         int chw;
 
         if ((TB_ABSPOS(box) + 2) <= length &&
-            box->text[TB_ABSPOS(box)] > 0x80)
+            box->text[TB_ABSPOS(box)] & 0x80)
             chw = 2;
         else
             chw = 1;
@@ -406,7 +323,7 @@ static rt_bool_t rtgui_textbox_onkey(struct rtgui_object *widget, rtgui_event_t 
 			else
             {
                 /* always move one wide char when the first char is wide */
-                if (box->text[box->first_pos] > 0x80)
+                if (box->text[box->first_pos] & 0x80)
                 {
                     box->first_pos += 2;
                     if (chw == 2)
@@ -417,7 +334,7 @@ static rt_bool_t rtgui_textbox_onkey(struct rtgui_object *widget, rtgui_event_t 
                              i < box->first_pos + box->dis_length;
                              i++)
                         {
-                            if (box->text[i] > 0x80)
+                            if (box->text[i] & 0x80)
                                 head_fix++;
                         }
                         head_fix %= 2;
@@ -508,7 +425,7 @@ static rt_bool_t rtgui_textbox_onkey(struct rtgui_object *widget, rtgui_event_t 
 
                     if (strchr((char*)box->text, '-'))
                     {
-                        unsigned char *c;
+                        char *c;
                         for (c = &box->text[0]; c != &box->text[length]; c++)
                             *c = *(c + 1);
                         box->text[length] = '\0';
@@ -517,7 +434,7 @@ static rt_bool_t rtgui_textbox_onkey(struct rtgui_object *widget, rtgui_event_t 
                     }
                     else
                     {
-                        unsigned char *c;
+                        char *c;
                         for (c = &box->text[length]; c != &box->text[0]; c--)
                             *c = *(c - 1);
                         box->text[0] = '-';
@@ -534,7 +451,7 @@ static rt_bool_t rtgui_textbox_onkey(struct rtgui_object *widget, rtgui_event_t 
 
         if (TB_ABSPOS(box) <= length - 1)
         {
-            unsigned char *c;
+            char *c;
 
             for (c = &box->text[length + chw - 1];
                  c != &box->text[TB_ABSPOS(box)];
@@ -563,14 +480,14 @@ static rt_bool_t rtgui_textbox_onkey(struct rtgui_object *widget, rtgui_event_t 
         }
         else
         {
-            if (box->text[box->first_pos] > 0x80)
+            if (box->text[box->first_pos] & 0x80)
             {
                 box->first_pos += 2;
                 if (chw == 1)
                     box->position--;
             }
             else if (chw == 2 &&
-                     box->text[box->first_pos+1] > 0x80)
+                     box->text[box->first_pos+1] & 0x80)
             {
                 box->first_pos += 3;
                 box->position  -= 1;
@@ -581,60 +498,37 @@ static rt_bool_t rtgui_textbox_onkey(struct rtgui_object *widget, rtgui_event_t 
     }
 
 _exit:
-	if (box->flag & RTGUI_TEXTBOX_CARET_SHOW)
+	if (rtgui_caret_is_shown(&box->caret))
 	{
-		if (box->caret_timer != RT_NULL)
-			rtgui_timer_stop(box->caret_timer);
-
-		box->flag &= ~RTGUI_TEXTBOX_CARET_SHOW;
-		rtgui_textbox_draw_caret(box, posbak);/* refresh it */
-		if (box->caret_timer != RT_NULL)
-			rtgui_timer_start(box->caret_timer);
+		rtgui_caret_clear(&box->caret);/* refresh it */
 	}
 
 	/* re-draw text box */
 	rtgui_textbox_ondraw(box);
 
-	rtgui_textbox_init_caret(box, box->position);
-	box->flag |= RTGUI_TEXTBOX_CARET_SHOW;
-	rtgui_textbox_draw_caret(box, box->position);
+	rtgui_textbox_init_caret(box, TB_ABSPOS(box));
+	rtgui_caret_show(&box->caret);
 
 	return RT_TRUE;
 }
 
 rt_bool_t rtgui_textbox_onfocus(struct rtgui_object *widget, rtgui_event_t *event)
 {
-	rtgui_textbox_t *box = RTGUI_TEXTBOX(widget);
+    rtgui_textbox_t *box = RTGUI_TEXTBOX(widget);
 
-	/* if there is already a timer, don't create another one. */
-	if (box->caret_timer == RT_NULL)
-	{
-		box->caret_timer = rtgui_timer_create(50, RT_TIMER_FLAG_PERIODIC, rtgui_textbox_timeout, box);
-		/* set caret to show */
-		box->flag |= RTGUI_TEXTBOX_CARET_SHOW;
-		/* start caret timer */
-		if (box->caret_timer != RT_NULL)
-			rtgui_timer_start(box->caret_timer);
-	}
-    rtgui_textbox_init_caret(box, box->position);
+    rtgui_caret_start_timer(&box->caret, RT_TICK_PER_SECOND);
+    rtgui_textbox_init_caret(box, TB_ABSPOS(box));
 
-	return RT_TRUE;
+    return RT_TRUE;
 }
 
 static rt_bool_t rtgui_textbox_onunfocus(struct rtgui_object *widget, rtgui_event_t *event)
 {
 	rtgui_textbox_t *box = RTGUI_TEXTBOX(widget);
 
-	/* stop caret timer */
-	if (box->caret_timer != RT_NULL)
-	{
-		rtgui_timer_stop(box->caret_timer);
-		rtgui_timer_destory(box->caret_timer);
-		box->caret_timer = RT_NULL;
-	}
+    rtgui_caret_stop_timer(&box->caret);
 	/* set caret to hide */
-	box->flag &= ~RTGUI_TEXTBOX_CARET_SHOW;
-	rtgui_textbox_draw_caret(box, box->position);
+	rtgui_caret_clear(&box->caret);
 
 	if (box->on_enter != RT_NULL)
 		box->on_enter(box, event);
@@ -642,17 +536,17 @@ static rt_bool_t rtgui_textbox_onunfocus(struct rtgui_object *widget, rtgui_even
 	return RT_TRUE;
 }
 
-rtgui_textbox_t *rtgui_textbox_create(const char *text, rt_uint32_t flag)
+rtgui_textbox_t *rtgui_textbox_create(const char *text, enum rtgui_textbox_flag flag)
 {
 	rtgui_textbox_t *box;
 
 	box = (struct rtgui_textbox *)rtgui_widget_create(RTGUI_TEXTBOX_TYPE);
-	if (box != RT_NULL)
-	{
-		/* allocate default line buffer */
-		rtgui_textbox_set_value(box, text);
-		box->flag = flag;
-	}
+    if (!box)
+        return RT_NULL;
+
+    /* allocate default line buffer */
+    rtgui_textbox_set_value(box, text);
+    box->flag = flag;
 
 	return box;
 }
@@ -702,10 +596,13 @@ void rtgui_textbox_ondraw(rtgui_textbox_t *box)
 		if (box->flag & RTGUI_TEXTBOX_MASK)
 		{
 			/* draw mask char */
-			rt_size_t len = rt_strlen((char*)box->text);
+			rt_size_t len = rt_strlen(box->text);
 			if (len > 0)
 			{
 				char *text_mask = rtgui_malloc(len + 1);
+
+                if (!text_mask)
+                    goto _out;
 				rt_memset(text_mask, box->mask_char, len + 1);
 				text_mask[len] = 0;
 				rtgui_dc_draw_text(dc, text_mask+box->first_pos, &rect);
@@ -714,19 +611,25 @@ void rtgui_textbox_ondraw(rtgui_textbox_t *box)
 		}
 		else
 		{
-			rtgui_dc_draw_text(dc, (char*)(box->text+box->first_pos), &rect);
+			rtgui_dc_draw_text(dc, box->text + box->first_pos, &rect);
 		}
 	}
 
+_out:
 	rtgui_dc_end_drawing(dc);
 }
 
 /* set textbox text */
 void rtgui_textbox_set_value(rtgui_textbox_t *box, const char *text)
 {
-    /* Hide the caret first. */
-    box->flag &= ~RTGUI_TEXTBOX_CARET_SHOW;
-    rtgui_textbox_draw_caret(box, box->position);
+    int cshow;
+
+    cshow = rtgui_caret_is_shown(&box->caret);
+    /* If the caret is shown before, reset it. */
+    if (cshow)
+    {
+        rtgui_caret_clear(&box->caret);
+    }
 
     if (box->text != RT_NULL)
     {
@@ -749,11 +652,13 @@ void rtgui_textbox_set_value(rtgui_textbox_t *box, const char *text)
     /* set current position */
     box->position = rt_strlen(text);
 
-    /* Reset the caret to get the pixel buffer right. */
-    rtgui_textbox_init_caret(box, box->position);
-    /* Than show it. */
-    box->flag |= RTGUI_TEXTBOX_CARET_SHOW;
-    rtgui_textbox_draw_caret(box, box->position);
+    if (cshow)
+    {
+        /* Reset the caret to get the pixel buffer right. */
+        rtgui_textbox_init_caret(box, TB_ABSPOS(box));
+        /* Than show it. */
+        rtgui_caret_show(&box->caret);
+    }
 }
 RTM_EXPORT(rtgui_textbox_set_value);
 
@@ -775,7 +680,7 @@ char rtgui_textbox_get_mask_char(rtgui_textbox_t *box)
 
 rt_err_t rtgui_textbox_set_line_length(rtgui_textbox_t *box, rt_size_t length)
 {
-    unsigned char *new_line;
+    char *new_line;
 
     RT_ASSERT(box != RT_NULL);
 
@@ -783,7 +688,7 @@ rt_err_t rtgui_textbox_set_line_length(rtgui_textbox_t *box, rt_size_t length)
     if (length <= 0)
         return -RT_ERROR;
 
-    new_line = (unsigned char* )rtgui_realloc(box->text, length+1);
+    new_line = (char*)rtgui_realloc(box->text, length+1);
     if (new_line == RT_NULL)
         return -RT_ENOMEM;
 

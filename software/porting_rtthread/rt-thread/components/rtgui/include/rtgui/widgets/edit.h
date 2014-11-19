@@ -16,6 +16,7 @@
 
 #include <rtgui/widgets/widget.h>
 #include <rtgui/widgets/container.h>
+#include <rtgui/widgets/caret.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -36,11 +37,6 @@ enum rtgui_edit_flag
     RTGUI_EDIT_CARET    = 0x01,
     RTGUI_EDIT_VSCROLL  = 0x02,
     RTGUI_EDIT_HSCROLL  = 0x04,
-    RTGUI_EDIT_SHIFT    = 0x10,
-    RTGUI_EDIT_CTRL     = 0x20,
-    RTGUI_EDIT_ALT      = 0x40,
-    RTGUI_EDIT_CAPSLOCK = 0x80,
-    RTGUI_EDIT_NUMLOCK  = 0x100,
 };
 
     struct edit_update
@@ -78,9 +74,8 @@ enum rtgui_edit_flag
         rt_uint8_t    margin;
         rt_int16_t    bzsize; /* base zone size */
 
-        struct rtgui_timer *caret_timer;
-        rtgui_color_t *caret;
-        rtgui_rect_t  caret_rect;
+        struct rtgui_caret caret;
+
         struct edit_update update;
 
         struct edit_line  *head;

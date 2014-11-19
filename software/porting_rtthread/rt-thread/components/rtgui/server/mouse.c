@@ -46,7 +46,7 @@ struct rtgui_cursor
 
 #ifdef RTGUI_USING_WINMOVE
     /* move window rect and border */
-    struct rtgui_topwin *topwin;
+    struct rtgui_win *win;
     rtgui_rect_t    win_rect;
     rt_uint8_t      *win_left, *win_right;
     rt_uint8_t      *win_top, *win_bottom;
@@ -210,7 +210,7 @@ void rtgui_mouse_moveto(int x, int y)
 #endif
 
     if (x != _rtgui_cursor->cx ||
-            y != _rtgui_cursor->cy)
+        y != _rtgui_cursor->cy)
     {
 #ifdef RTGUI_USING_WINMOVE
         if (_rtgui_cursor->win_rect_show)
@@ -421,22 +421,23 @@ static void rtgui_cursor_show()
 #endif
 
 #ifdef RTGUI_USING_WINMOVE
-void rtgui_winrect_set(struct rtgui_topwin *topwin)
+void rtgui_winrect_set(struct rtgui_win *win)
 {
     /* set win rect show */
     _rtgui_cursor->win_rect_show = RT_TRUE;
 
     /* set win rect */
-    _rtgui_cursor->win_rect = topwin->title == RT_NULL ? topwin->extent : RTGUI_WIDGET(topwin->title)->extent;
-    _rtgui_cursor->topwin = topwin;
+    _rtgui_cursor->win_rect =
+        win->_title_wgt == RT_NULL ?
+        RTGUI_WIDGET(win)->extent :
+        RTGUI_WIDGET(win->_title_wgt)->extent;
+
+    _rtgui_cursor->win = win;
 }
 
-rt_bool_t rtgui_winrect_moved_done(rtgui_rect_t *winrect, struct rtgui_topwin **topwin)
+rt_bool_t rtgui_winrect_moved_done(rtgui_rect_t *winrect, struct rtgui_win **win)
 {
     rt_bool_t moved = RT_FALSE;
-
-    /* no win rect */
-    if (winrect == RT_NULL) return RT_FALSE;
 
     /* restore winrect */
     if (_rtgui_cursor->win_rect_has_saved)
@@ -451,8 +452,10 @@ rt_bool_t rtgui_winrect_moved_done(rtgui_rect_t *winrect, struct rtgui_topwin **
     _rtgui_cursor->win_rect_has_saved = RT_FALSE;
 
     /* return win rect */
-    *winrect = _rtgui_cursor->win_rect;
-    *topwin = _rtgui_cursor->topwin;
+    if (winrect)
+        *winrect = _rtgui_cursor->win_rect;
+    if (win)
+        *win = _rtgui_cursor->win;
 
     return moved;
 }

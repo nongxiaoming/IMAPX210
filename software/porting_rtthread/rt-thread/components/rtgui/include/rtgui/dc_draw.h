@@ -296,7 +296,7 @@ do { \
 #define VLINE(type, op, draw_end) \
 { \
     int length; \
-    int pitch = (_dc_get_pitch(dst)); \
+    int pitch = _dc_get_pitch(dst)/(_UI_BITBYTES(_dc_get_bits_per_pixel(dst))); \
     type *pixel; \
     if (y1 <= y2) { \
         pixel = (type *)_dc_get_pixel(dst, x1, y1); \
@@ -318,7 +318,7 @@ do { \
 #define DLINE(type, op, draw_end) \
 { \
     int length; \
-    int pitch = (_dc_get_pitch(dst)); \
+    int pitch = _dc_get_pitch(dst)/(_UI_BITBYTES(_dc_get_bits_per_pixel(dst))); \
     type *pixel; \
     if (y1 <= y2) { \
         pixel = (type *)_dc_get_pixel(dst, x1, y1); \
@@ -531,7 +531,7 @@ do { \
 do { \
     int width = rect->x2 - rect->x1; \
     int height = rect->y2 - rect->y1; \
-    int pitch = _dc_get_pitch(dst)/(_dc_get_bits_per_pixel(dst)/8); \
+    int pitch = _dc_get_pitch(dst)/(_UI_BITBYTES(_dc_get_bits_per_pixel(dst))); \
     int skip = pitch - width; \
     type *pixel = (type *)_dc_get_pixel(dst, rect->x1, rect->y1); \
     while (height--) { \

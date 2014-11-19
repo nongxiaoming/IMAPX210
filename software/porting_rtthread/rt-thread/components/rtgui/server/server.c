@@ -20,6 +20,8 @@
 #include <rtgui/driver.h>
 #include <rtgui/touch.h>
 
+#include <rtgui/widgets/window.h>
+
 #include "mouse.h"
 #include "topwin.h"
 #include "gesture.h"
@@ -54,7 +56,7 @@ void rtgui_server_handle_monitor_remove(struct rtgui_event_monitor *event)
 void rtgui_server_handle_mouse_btn(struct rtgui_event_mouse *event)
 {
     struct rtgui_topwin *wnd;
-	
+
     /* re-init to server thread */
     RTGUI_EVENT_MOUSE_BUTTON_INIT(event);
 
@@ -63,35 +65,23 @@ void rtgui_server_handle_mouse_btn(struct rtgui_event_mouse *event)
 
 #ifdef RTGUI_USING_WINMOVE
     if (rtgui_winrect_is_moved() &&
-            event->button & (RTGUI_MOUSE_BUTTON_LEFT | RTGUI_MOUSE_BUTTON_UP))
+        event->button & (RTGUI_MOUSE_BUTTON_LEFT | RTGUI_MOUSE_BUTTON_UP))
     {
-        struct rtgui_topwin *topwin;
+        struct rtgui_win *win;
         rtgui_rect_t rect;
 
-        if (rtgui_winrect_moved_done(&rect, &topwin) == RT_TRUE)
+        if (rtgui_winrect_moved_done(&rect, &win) == RT_TRUE)
         {
             struct rtgui_event_win_move ewin;
 
             /* move window */
             RTGUI_EVENT_WIN_MOVE_INIT(&ewin);
-            ewin.wid = topwin->wid;
-            if (topwin->title != RT_NULL)
-            {
-                if (topwin->flag & WINTITLE_BORDER)
-                {
-                    ewin.x = rect.x1 + WINTITLE_BORDER_SIZE;
-                    ewin.y = rect.y1 + WINTITLE_BORDER_SIZE;
-                }
-                if (!(topwin->flag & WINTITLE_NO)) ewin.y += WINTITLE_HEIGHT;
-            }
-            else
-            {
-                ewin.x = rect.x1;
-                ewin.y = rect.y1;
-            }
+            ewin.wid = win;
+            ewin.x = rect.x1;
+            ewin.y = rect.y1;
 
             /* send to client thread */
-            rtgui_send(topwin->app, &(ewin.parent), sizeof(ewin));
+            rtgui_send(win->app, &(ewin.parent), sizeof(ewin));
 
             return;
         }
@@ -113,20 +103,11 @@ void rtgui_server_handle_mouse_btn(struct rtgui_event_mouse *event)
     }
 
 	/* handle gesture event */
-	if (rtgui_gesture_handle(event, wnd) == 0) return;
+	if (rtgui_gesture_handle(event, wnd) == 0)
+        return;
 
-    if (wnd->title != RT_NULL &&
-        rtgui_rect_contains_point(&(RTGUI_WIDGET(wnd->title)->extent),
-                                  event->x, event->y) == RT_EOK)
-    {
-        rtgui_topwin_title_onmouse(wnd, event);
-    }
-    else
-    {
-        /* send mouse event to thread */
-        rtgui_send(wnd->app, (struct rtgui_event *)event, sizeof(struct rtgui_event_mouse));
-    }
-    return;
+    /* send mouse event to thread */
+    rtgui_send(wnd->app, (struct rtgui_event *)event, sizeof(struct rtgui_event_mouse));
 }
 
 void rtgui_server_handle_mouse_motion(struct rtgui_event_mouse *event)

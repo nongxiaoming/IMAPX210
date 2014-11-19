@@ -102,19 +102,19 @@ static rt_bool_t rtgui_slider_onkey(struct rtgui_slider *slider, struct rtgui_ev
     RT_ASSERT(slider != RT_NULL);
     RT_ASSERT(event != RT_NULL);
 
-    if (!(RTGUI_KBD_IS_UP(event)))
+    if (!(RTGUI_KBD_IS_DOWN(event)))
         return RT_TRUE;
 
     if (slider->orient == RTGUI_HORIZONTAL)
     {
         if (event->key == RTGUIK_RIGHT)
         {
-            if (slider->value > slider->min)
+            if (slider->value < slider->max)
                 slider->value++;
         }
         else if (event->key == RTGUIK_LEFT)
         {
-            if (slider->value < slider->max)
+            if (slider->value > slider->min)
                 slider->value--;
         }
     }

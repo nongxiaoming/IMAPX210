@@ -100,9 +100,12 @@ DECLARE_CLASS_TYPE(object);
 
 enum rtgui_object_flag
 {
-    RTGUI_OBJECT_FLAG_NONE     = 0x00,
-    RTGUI_OBJECT_FLAG_STATIC   = 0x01,
-    RTGUI_OBJECT_FLAG_DISABLED = 0x02
+    RTGUI_OBJECT_FLAG_NONE     = 0x0000,
+    RTGUI_OBJECT_FLAG_STATIC   = 0x0001,
+    RTGUI_OBJECT_FLAG_DISABLED = 0x0002,
+    /* When an object is created, it's flag is set to valid. When an object is
+     * deleted, the valid bits will be cleared. */
+    RTGUI_OBJECT_FLAG_VALID    = 0xAB00,
 };
 
 /* rtgui base object */

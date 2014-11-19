@@ -42,6 +42,11 @@ DECLARE_CLASS_TYPE(win);
 
 #define RTGUI_WIN_STYLE_DEFAULT     (RTGUI_WIN_STYLE_CLOSEBOX | RTGUI_WIN_STYLE_MINIBOX)
 
+#define WINTITLE_HEIGHT         20
+#define WINTITLE_CB_WIDTH       16
+#define WINTITLE_CB_HEIGHT      16
+#define WINTITLE_BORDER_SIZE    2
+
 enum rtgui_win_flag
 {
     RTGUI_WIN_FLAG_INIT        = 0x00,  /* init state              */
@@ -60,10 +65,9 @@ enum rtgui_win_flag
      * If this flag is set, we are in key-handling mode.
      */
     RTGUI_WIN_FLAG_HANDLE_KEY  = 0x20,
-};
 
-struct rtgui_win_title;
-struct rtgui_win_area;
+    RTGUI_WIN_FLAG_CB_PRESSED  = 0x40,
+};
 
 struct rtgui_win
 {
@@ -75,6 +79,9 @@ struct rtgui_win
 
     /* parent window. RT_NULL if the window is a top level window */
     struct rtgui_win *parent_window;
+
+    struct rtgui_region outer_clip;
+    struct rtgui_rect outer_extent;
 
     /* the widget that will grab the focus in current window */
     struct rtgui_widget *focused_widget;
@@ -95,6 +102,7 @@ struct rtgui_win
 
     /* window title */
     char *title;
+    struct rtgui_wintitle *_title_wgt;
 
     /* call back */
     rt_bool_t (*on_activate)(struct rtgui_object *widget, struct rtgui_event *event);

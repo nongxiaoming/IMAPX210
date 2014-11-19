@@ -46,42 +46,6 @@ int rtgui_anim_motion_outsquare(unsigned int tick, unsigned int max_tick)
                                     tick / max_tick);
 }
 
-void rtgui_anim_engine_move(struct rtgui_dc *background,
-                            struct rtgui_dc_buffer *background_buffer,
-                            struct rtgui_dc_buffer *items,
-                            int item_cnt,
-                            int progress,
-                            void *param)
-{
-    int cx, cy, w, h;
-    struct rtgui_anim_engine_move_ctx *ctx = param;
-    struct rtgui_rect dc_rect;
-
-    if (!(background && background_buffer && items))
-        return;
-
-    rtgui_dc_get_rect(background, &dc_rect);
-
-    cx = progress * (ctx->end.x - ctx->start.x) / RTGUI_ANIM_TICK_RANGE;
-    cy = progress * (ctx->end.y - ctx->start.y) / RTGUI_ANIM_TICK_RANGE;
-    w = rtgui_rect_width(dc_rect);
-    h = rtgui_rect_height(dc_rect);
-
-    dc_rect.x1 = cx + ctx->start.x;
-    dc_rect.y1 = cy + ctx->start.y;
-    dc_rect.x2 = dc_rect.x1 + w;
-    dc_rect.y2 = dc_rect.y1 + h;
-    /* DC buffer is buggy on negative rect.{x1,y1}. */
-    if (dc_rect.x1 < 0)
-        dc_rect.x1 = 0;
-    if (dc_rect.y1 < 0)
-        dc_rect.y1 = 0;
-    rtgui_dc_blit((struct rtgui_dc*)background_buffer, NULL, background, NULL);
-    /* To prevent overlapping, only one item can be drawn by
-     * rtgui_anim_engine_move. */
-    rtgui_dc_blit((struct rtgui_dc*)(items), NULL, background, &dc_rect);
-}
-
 static void _anim_timeout(struct rtgui_timer *timer, void *parameter)
 {
     struct rtgui_dc *dc;
@@ -250,7 +214,7 @@ void rtgui_anim_start(struct rtgui_animation *anim)
 {
     RT_ASSERT(anim);
 
-    if (anim->fg_buf && anim->max_tick && anim->state == _ANIM_STOPPED)
+    if (anim->state == _ANIM_STOPPED)
     {
         anim->state = _ANIM_RUNNING;
         rtgui_timer_start(anim->timer);
@@ -264,4 +228,3 @@ void rtgui_anim_stop(struct rtgui_animation *anim)
     anim->state = _ANIM_STOPPED;
     rtgui_timer_stop(anim->timer);
 }
-

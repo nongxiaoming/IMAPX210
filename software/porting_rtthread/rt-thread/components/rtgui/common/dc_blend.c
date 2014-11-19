@@ -705,9 +705,13 @@ rtgui_dc_blend_point(struct rtgui_dc * dst, int x, int y, enum RTGUI_BLENDMODE b
 {
 	RT_ASSERT(dst != RT_NULL);
 
+    /* Negative coordinates are always invisible. */
+    if (x < 0 || y < 0)
+        return;
+
 	if (!rtgui_dc_get_visible(dst)) return;
 	/* we do not support pixel DC */
-	if (_dc_get_pixel(dst, 0, 0) == RT_NULL) return ; 
+	if (_dc_get_pixel(dst, 0, 0) == RT_NULL) return;
 
 	/* Perform clipping */
 	if (dst->type == RTGUI_DC_CLIENT)
@@ -2325,7 +2329,7 @@ void _murphyWideline(_MurphyIterator *m, rt_int16_t x1, rt_int16_t y1, rt_int16_
 	float offset = (float)width / 2.f;
 
 	rt_int16_t temp;
-	rt_int16_t ptx, pty, ptxx, ptxy, ml1x, ml1y, ml2x, ml2y, ml1bx, ml1by, ml2bx, ml2by;
+	rt_int16_t ptx, pty, ml1x, ml1y, ml2x, ml2y, ml1bx, ml1by, ml2bx, ml2by;
 
 	int d0, d1;		/* difference terms d0=perpendicular to line, d1=along line */
 
@@ -2410,8 +2414,6 @@ void _murphyWideline(_MurphyIterator *m, rt_int16_t x1, rt_int16_t y1, rt_int16_
 		m->last2x = -32768;
 		m->last2y = -32768;
 	}
-	ptxx = ptx;
-	ptxy = pty;
 
 	for (q = 0; dd <= tk; q++) {	/* outer loop, stepping perpendicular to line */
 

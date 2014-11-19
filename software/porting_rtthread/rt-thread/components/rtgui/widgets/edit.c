@@ -13,19 +13,18 @@
  * 2012-08-09     amsl         beta 0.1
  */
 #include <rtgui/dc.h>
+#include <rtgui/rtgui_system.h>
 #include <rtgui/widgets/edit.h>
 #include <rtgui/widgets/scrollbar.h>
-#include <rtgui/rtgui_system.h>
 #include <rtgui/filerw.h>
+
+#include <ctype.h>
 
 #include "text_encoding.h"
 
 #define RTGUI_EDIT_CARET_TIMEOUT (RT_TICK_PER_SECOND/2)
 
-static void rtgui_edit_get_caret_rect(struct rtgui_edit *edit, rtgui_rect_t *rect, rtgui_point_t visual);
 static void rtgui_edit_init_caret(struct rtgui_edit *edit, rtgui_point_t visual);
-static void rtgui_edit_draw_caret(struct rtgui_edit *edit);
-static void rtgui_edit_timeout(struct rtgui_timer *timer, void *parameter);
 static void rtgui_edit_update(struct rtgui_edit *edit);
 static rt_bool_t rtgui_edit_onfocus(struct rtgui_object *object, rtgui_event_t *event);
 static rt_bool_t rtgui_edit_onunfocus(struct rtgui_object *object, rtgui_event_t *event);
@@ -48,9 +47,7 @@ void _rtgui_edit_constructor(struct rtgui_edit *edit)
     /* set default text align */
     RTGUI_WIDGET_TEXTALIGN(edit) = RTGUI_ALIGN_CENTER_VERTICAL;
     rtgui_widget_set_border(RTGUI_WIDGET(edit), RTGUI_BORDER_SUNKEN);
-    /* set proper of control */
-    edit->caret_timer = RT_NULL;
-    edit->caret = RT_NULL;
+    rtgui_caret_init(&edit->caret, RTGUI_WIDGET(edit));
 
     edit->tabsize = 4;
     edit->margin  = 1;
@@ -87,13 +84,7 @@ void _rtgui_edit_deconstructor(struct rtgui_edit *edit)
             rtgui_edit_delete_line(edit, edit->head);
         edit->max_rows = 0;
     }
-    if (edit->caret_timer != RT_NULL)
-        rtgui_timer_destory(edit->caret_timer);
-    edit->caret_timer = RT_NULL;
-
-    if (edit->caret != RT_NULL)
-        rtgui_free(edit->caret);
-    edit->caret = RT_NULL;
+    rtgui_caret_cleanup(&edit->caret);
 }
 
 DEFINE_CLASS_TYPE(edit, "edit",
@@ -351,14 +342,7 @@ static int _edit_char_width(struct rtgui_edit *edit,
  */
 static void _edit_hide_caret(struct rtgui_edit *edit)
 {
-    if (edit->caret_timer != RT_NULL)
-        rtgui_timer_stop(edit->caret_timer);
-
-    if (edit->flag & RTGUI_EDIT_CARET)
-    {
-        edit->flag &= ~RTGUI_EDIT_CARET;
-        rtgui_edit_draw_caret(edit);
-    }
+    rtgui_caret_clear(&edit->caret);
 }
 
 /* _edit_show_caret should be called after _edit_hide_caret.
@@ -382,11 +366,8 @@ static void _edit_show_caret(struct rtgui_edit *edit)
     RT_ASSERT(!(edit->flag & RTGUI_EDIT_CARET));
 
     rtgui_edit_init_caret(edit, edit->visual);
-    edit->flag |= RTGUI_EDIT_CARET;
-    rtgui_edit_draw_caret(edit);
-
-    if (edit->caret_timer != RT_NULL)
-        rtgui_timer_start(edit->caret_timer);
+    rtgui_caret_show(&edit->caret);
+    rtgui_caret_start_timer(&edit->caret, RTGUI_EDIT_CARET_TIMEOUT);
 }
 
 /* Increase the line number from specific line. */
@@ -511,6 +492,25 @@ rt_bool_t rtgui_edit_insert_line(struct rtgui_edit *edit, struct edit_line *p, c
 }
 RTM_EXPORT(rtgui_edit_insert_line);
 
+static void _edit_del_line(struct rtgui_edit *edit, struct edit_line *line)
+{
+    if (edit->head == line)
+        edit->head = line->next;
+    if (line->prev)
+        line->prev->next = line->next;
+    if (line->next)
+        line->next->prev = line->prev;
+
+    if (edit->max_rows > 0)
+        edit->max_rows--;
+    _line_add_ln_from(line->next, -1);
+    if (edit->on_delete_line)
+        edit->on_delete_line(edit, line);
+    if (line->text)
+        rtgui_free(line->text);
+    rtgui_free(line);
+}
+
 rt_bool_t rtgui_edit_delete_line(struct rtgui_edit *edit, struct edit_line *line)
 {
     int redraw = 0;
@@ -529,21 +529,7 @@ rt_bool_t rtgui_edit_delete_line(struct rtgui_edit *edit, struct edit_line *line
     if (edit->update.start.y < 0)
         edit->update.start.y = 0;
 
-    if (edit->head == line)
-        edit->head = line->next;
-    if (line->prev)
-        line->prev->next = line->next;
-    if (line->next)
-        line->next->prev = line->prev;
-
-    if (edit->max_rows > 0)
-        edit->max_rows--;
-    _line_add_ln_from(line->next, -1);
-    if (edit->on_delete_line)
-        edit->on_delete_line(edit, line);
-    if (line->text)
-        rtgui_free(line->text);
-    rtgui_free(line);
+    _edit_del_line(edit, line);
 
     _edit_hide_caret(edit);
     comming_line = rtgui_edit_get_line_by_index(edit,
@@ -602,20 +588,19 @@ RTM_EXPORT(rtgui_edit_delete_line);
 
 void rtgui_edit_clear_text(struct rtgui_edit *edit)
 {
-    struct edit_line *line;
-
     RT_ASSERT(edit != RT_NULL);
 
-    /* Get the tail. */
-    for (line = edit->head; line && line->next; line = line->next)
-        ;
-    /* In order to avoid useless redrawings, delete from tail to head. */
-    while (line)
-    {
-        struct edit_line *pl = line->prev;
-        rtgui_edit_delete_line(edit, line);
-        line = pl;
-    }
+    /* Call the low level API so we don't update in the middle, thus avoiding
+     * flickering. */
+    _edit_hide_caret(edit);
+    while (edit->head)
+        _edit_del_line(edit, edit->head);
+    edit->upleft.x = 0;
+    edit->upleft.y = 0;
+    edit->visual.x = 0;
+    edit->visual.y = 0;
+    rtgui_widget_update(RTGUI_WIDGET(edit));
+    _edit_show_caret(edit);
 }
 RTM_EXPORT(rtgui_edit_clear_text);
 
@@ -737,92 +722,23 @@ static void rtgui_edit_get_caret_rect(struct rtgui_edit *edit, rtgui_rect_t *rec
 
 static void rtgui_edit_init_caret(struct rtgui_edit *edit, rtgui_point_t visual)
 {
-    struct rtgui_graphic_driver *hw_driver = rtgui_graphic_driver_get_default();
-    int x, y;
-    rtgui_color_t color;
     rtgui_rect_t rect;
-    int ofs = 0;
+    struct edit_line *line;
 
     RT_ASSERT(edit != RT_NULL);
     if (!RTGUI_WIDGET_IS_FOCUSED(edit))
         return;
 
-    rtgui_edit_get_caret_rect(edit, &edit->caret_rect, visual);
-    rect = edit->caret_rect;
-    rtgui_widget_rect_to_device(RTGUI_WIDGET(edit), &rect);
-
-    if (edit->caret == RT_NULL)
-        edit->caret = (rtgui_color_t *)rtgui_malloc(rtgui_rect_width(rect) *
-                                                    rtgui_rect_height(rect) *
-                                                    sizeof(rtgui_color_t));
-    rtgui_screen_lock(RT_WAITING_FOREVER);
-    for (x = rect.x1; x < rect.x2; x++)
-    {
-        for (y = rect.y1; y < rect.y2; y++)
-        {
-            hw_driver->ops->get_pixel(&color, x, y);
-            *(edit->caret + ofs++) = color;
-        }
-    }
-    rtgui_screen_unlock();
-}
-
-/* draw caret */
-static void rtgui_edit_draw_caret(struct rtgui_edit *edit)
-{
-    int x, y;
-    rtgui_color_t orig_bg, bg_color;
-    int ofs = 0;
-    struct rtgui_dc *dc;
-
-    RT_ASSERT(edit != RT_NULL);
-    if (edit->caret == RT_NULL)
-        return;
-
-    dc = rtgui_dc_begin_drawing(RTGUI_WIDGET(edit));
-    if (dc == RT_NULL)
-        return;
-
-    orig_bg = RTGUI_WIDGET_BACKGROUND(edit);
-    if (edit->flag & RTGUI_EDIT_CARET)
-        bg_color = ~edit->caret[0];
+    rtgui_edit_get_caret_rect(edit, &rect, visual);
+    line = rtgui_edit_get_line_by_index(edit, edit->upleft.y + visual.y);
+    if (line)
+        rtgui_caret_fill(&edit->caret,
+                         &rect,
+                         line->text + edit->upleft.x + visual.x);
     else
-        bg_color = edit->caret[0];
-    RTGUI_WIDGET_BACKGROUND(edit) = bg_color;
-    rtgui_dc_fill_rect(dc, &edit->caret_rect);
-
-    for (x = edit->caret_rect.x1; x < edit->caret_rect.x2; x++)
-    {
-        for (y = edit->caret_rect.y1; y < edit->caret_rect.y2; y++)
-        {
-            rtgui_color_t color = *(edit->caret + ofs);
-
-            ofs++;
-            if (edit->flag & RTGUI_EDIT_CARET)
-                color = ~color;
-            if (color != bg_color)
-                rtgui_dc_draw_color_point(dc, x, y, color);
-        }
-    }
-    RTGUI_WIDGET_BACKGROUND(edit) = orig_bg;
-
-    rtgui_dc_end_drawing(dc);
-}
-
-static void rtgui_edit_timeout(struct rtgui_timer *timer, void *parameter)
-{
-    struct rtgui_edit *edit;
-
-    edit = RTGUI_EDIT(parameter);
-    /* set caret flag */
-    if (edit->flag & RTGUI_EDIT_CARET)
-        edit->flag &= ~RTGUI_EDIT_CARET;
-    else
-        edit->flag |= RTGUI_EDIT_CARET;
-
-    rtgui_edit_draw_caret(edit);
-
-    return;
+        rtgui_caret_fill(&edit->caret,
+                         &rect,
+                         "");
 }
 
 struct edit_line *rtgui_edit_get_line_by_index(struct rtgui_edit *edit, rt_uint32_t index)
@@ -953,8 +869,10 @@ static void rtgui_edit_onmouse(struct rtgui_edit *edit, struct rtgui_event_mouse
 
 rt_inline rt_uint16_t query_shift_code(rt_uint16_t key)
 {
-    if (key >= RTGUIK_a && key <= RTGUIK_z)
+    if (RTGUIK_a <= key && key <= RTGUIK_z)
         return (key - 'a' + 'A');
+    else if ('A' <= key && key <= 'Z')
+        return (key - 'A' + 'a');
     else
     {
         switch (key)
@@ -1013,44 +931,37 @@ rt_inline rt_uint16_t query_caps_code(rt_uint16_t key)
     return key;
 }
 
-rt_inline rt_bool_t is_small_keyboard(rt_uint16_t *key)
+rt_inline rt_uint16_t query_num_code(rt_uint16_t key)
 {
-    if (*key >= RTGUIK_KP0 && *key <= RTGUIK_KP9)
+    if (key >= RTGUIK_KP0 && key <= RTGUIK_KP9)
     {
-        *key = *key - (RTGUIK_KP0 - RTGUIK_0);
-        return RT_TRUE;
+        return key - (RTGUIK_KP0 - RTGUIK_0);
     }
-    else if (*key == RTGUIK_KP_PERIOD)
+    else if (key == RTGUIK_KP_PERIOD)
     {
-        *key = '.';
-        return RT_TRUE;
+        return '.';
     }
-    else if (*key == RTGUIK_KP_DIVIDE)
+    else if (key == RTGUIK_KP_DIVIDE)
     {
-        *key = '/';
-        return RT_TRUE;
+        return '/';
     }
-    else if (*key == RTGUIK_KP_MULTIPLY)
+    else if (key == RTGUIK_KP_MULTIPLY)
     {
-        *key = '*';
-        return RT_TRUE;
+        return '*';
     }
-    else if (*key == RTGUIK_KP_MINUS)
+    else if (key == RTGUIK_KP_MINUS)
     {
-        *key = '-';
-        return RT_TRUE;
+        return '-';
     }
-    else if (*key == RTGUIK_KP_PLUS)
+    else if (key == RTGUIK_KP_PLUS)
     {
-        *key = '+';
-        return RT_TRUE;
+        return '+';
     }
-    else if (*key == RTGUIK_KP_ENTER)
+    else if (key == RTGUIK_KP_ENTER)
     {
-        *key = RTGUIK_RETURN;
-        return RT_TRUE;
+        return RTGUIK_RETURN;
     }
-    return RT_FALSE;
+    return key;
 }
 
 void kbd_event_set_key(struct rtgui_event_kbd *ekbd, rt_uint16_t key)
@@ -1079,17 +990,6 @@ static rt_bool_t rtgui_edit_onkey(struct rtgui_object *object, rtgui_event_t *ev
 
     if (RTGUI_KBD_IS_UP(ekbd))
     {
-        /* reset function key */
-        if (ekbd->key == RTGUIK_RCTRL || ekbd->key == RTGUIK_LCTRL)
-            edit->flag &= ~RTGUI_EDIT_CTRL;
-        else if (ekbd->key == RTGUIK_RALT || ekbd->key == RTGUIK_LALT)
-            edit->flag &= ~RTGUI_EDIT_ALT;
-        else if (ekbd->key == RTGUIK_RSHIFT || ekbd->key == RTGUIK_LSHIFT)
-            edit->flag &= ~RTGUI_EDIT_SHIFT;
-        else if (ekbd->key == RTGUIK_CAPSLOCK)
-            edit->flag ^= RTGUI_EDIT_CAPSLOCK;
-        else if (ekbd->key == RTGUIK_NUMLOCK)
-            edit->flag ^= RTGUI_EDIT_NUMLOCK;
         return RT_TRUE;
     }
 
@@ -1103,35 +1003,7 @@ static rt_bool_t rtgui_edit_onkey(struct rtgui_object *object, rtgui_event_t *ev
         }
     }
 
-    if (ekbd->key == RTGUIK_RCTRL || ekbd->key == RTGUIK_LCTRL)
-    {
-        /* use CTRL key */
-        edit->flag |= RTGUI_EDIT_CTRL;
-        return RT_FALSE;
-    }
-    else if (ekbd->key == RTGUIK_RALT || ekbd->key == RTGUIK_LALT)
-    {
-        /* use ALT key */
-        edit->flag |= RTGUI_EDIT_ALT;
-        return RT_FALSE;
-    }
-    else if (ekbd->key == RTGUIK_RSHIFT || ekbd->key == RTGUIK_LSHIFT)
-    {
-        /* use SHIFT key */
-        edit->flag |= RTGUI_EDIT_SHIFT;
-        return RT_FALSE;
-    }
-    else if (ekbd->key == RTGUIK_CAPSLOCK)
-    {
-        edit->flag |= RTGUI_EDIT_CAPSLOCK;
-        return RT_FALSE;
-    }
-    else if (ekbd->key == RTGUIK_NUMLOCK)
-    {
-        edit->flag |= RTGUI_EDIT_NUMLOCK;
-        return RT_FALSE;
-    }
-    else if (ekbd->key == RTGUIK_DELETE)
+    if (ekbd->key == RTGUIK_DELETE)
     {
         /* delete latter character */
         int ofs = edit->upleft.x + edit->visual.x;
@@ -1593,88 +1465,94 @@ static rt_bool_t rtgui_edit_onkey(struct rtgui_object *object, rtgui_event_t *ev
     }
     else
     {
-        /* FIXME: more check on isprint(unicode)*/
-        if (ekbd->unicode || (ekbd->key < 127))
+        int char_width;
+        rt_uint16_t input_char;
+
+        if (ekbd->unicode)
         {
-            int char_width;
-            rt_uint16_t input_char;
-
-            if (ekbd->unicode)
-            {
-                char_width = 2;
-                input_char = ekbd->unicode;
-            }
-            else
-            {
-                char_width = 1;
-                if (edit->flag & RTGUI_EDIT_CAPSLOCK)
-                    ekbd->key = query_caps_code(ekbd->key);
-                if (edit->flag & RTGUI_EDIT_SHIFT)
-                    ekbd->key = query_shift_code(ekbd->key);
-                input_char = ekbd->key;
-            }
-
-            /* it's may print character */
-            update_type = EDIT_UPDATE;
-            edit->update.start = edit->visual;
-
-            if (line->len < line->zsize - char_width)
-            {
-                int ofs = edit->upleft.x + edit->visual.x;
-                if (edit->visual.x >= edit->col_per_page - char_width)
-                {
-                    edit->upleft.x += char_width;
-                    update_type = EDIT_ONDRAW;
-                }
-
-                if (ofs < line->len)
-                {
-                    char *c;
-                    for (c = &line->text[line->len + char_width - 1];
-                            c != &line->text[ofs];
-                            c--)
-                        *c = *(c - char_width);
-                }
-                if (char_width == 1)
-                {
-                    line->text[ofs] = input_char;
-                }
-                else if (char_width == 2)
-                {
-                    /* little endian */
-                    line->text[ofs]   = input_char >> 8;
-                    line->text[ofs + 1] = input_char & 0xFF;
-                }
-                else
-                {
-                    return RT_FALSE;
-                }
-                if (edit->visual.x < edit->col_per_page - char_width)
-                    edit->visual.x += char_width;
-                line->text[line->len + char_width] = '\0';
-                line->len = rtgui_edit_line_strlen(line->text);
-                edit->update.end.x = line->len;
-                if (edit->update.end.x > edit->col_per_page)
-                    edit->update.end.x = edit->col_per_page;
-                edit->update.end.y = edit->visual.y;
-            }
-            else
-            {
-                /* adjust line buffer's zone size */
-                line->zsize = rtgui_edit_alloc_len(edit->bzsize, line->len + char_width);
-                line->text = (char *)rt_realloc(line->text, line->zsize);
-                rtgui_edit_onkey(object, event); /* reentry */
-            }
+            char_width = 2;
+            input_char = ekbd->unicode;
         }
         else
         {
-            /* Is small keyboard ? */
-            if (edit->flag & RTGUI_EDIT_NUMLOCK)
+            char_width = 1;
+            input_char = ekbd->key;
+
+            /* Shift/Caps key does not modify the number pad keys. */
+            if (ekbd->mod & RTGUI_KMOD_NUM && (RTGUIK_KP0 <= input_char &&
+                                               input_char <= RTGUIK_KP_EQUALS))
             {
-                if (is_small_keyboard(&ekbd->key))
-                    rtgui_edit_onkey(object, event);
-                /* small keyboard another value reserved */
+                input_char = query_num_code(input_char);
             }
+            else
+            {
+                if (ekbd->mod & RTGUI_KMOD_CAPS)
+                    input_char = query_caps_code(input_char);
+                if ((ekbd->mod & RTGUI_KMOD_LSHIFT) || (ekbd->mod & RTGUI_KMOD_RSHIFT))
+                    input_char = query_shift_code(input_char);
+            }
+        }
+
+        if (char_width == 1 && (input_char >= 127 || !isprint(input_char)))
+            return RT_FALSE;
+
+        /* it's may print character */
+        update_type = EDIT_UPDATE;
+        edit->update.start = edit->visual;
+
+        if (line->len < line->zsize - char_width)
+        {
+            int ofs = edit->upleft.x + edit->visual.x;
+            if (edit->visual.x >= edit->col_per_page - char_width)
+            {
+                edit->upleft.x += char_width;
+                update_type = EDIT_ONDRAW;
+            }
+
+            if (ofs < line->len)
+            {
+                char *c;
+                for (c = &line->text[line->len + char_width - 1];
+                     c != &line->text[ofs];
+                     c--)
+                    *c = *(c - char_width);
+            }
+            if (char_width == 1)
+            {
+                line->text[ofs] = input_char;
+            }
+            else if (char_width == 2)
+            {
+                /* little endian */
+                line->text[ofs]   = input_char >> 8;
+                line->text[ofs + 1] = input_char & 0xFF;
+            }
+            else
+            {
+                return RT_FALSE;
+            }
+            if (edit->visual.x < edit->col_per_page - char_width)
+                edit->visual.x += char_width;
+            line->text[line->len + char_width] = '\0';
+            line->len = rtgui_edit_line_strlen(line->text);
+            edit->update.end.x = line->len;
+            if (edit->update.end.x > edit->col_per_page)
+                edit->update.end.x = edit->col_per_page;
+            edit->update.end.y = edit->visual.y;
+        }
+        else
+        {
+            char *tmp;
+            int zsize;
+
+            /* adjust line buffer's zone size */
+            zsize = rtgui_edit_alloc_len(edit->bzsize, line->len + char_width);
+            tmp = (char *)rt_realloc(line->text, zsize);
+            if (!tmp)
+                return RT_TRUE;
+            line->zsize = zsize;
+            line->text = tmp;
+            rtgui_edit_onkey(object, event); /* reentry */
         }
     }
     line->len = rtgui_edit_line_strlen(line->text);
@@ -1699,13 +1577,7 @@ static rt_bool_t rtgui_edit_onfocus(struct rtgui_object *object, rtgui_event_t *
 {
     struct rtgui_edit *edit = RTGUI_EDIT(object);
 
-    edit->caret_timer = rtgui_timer_create(RTGUI_EDIT_CARET_TIMEOUT, RT_TIMER_FLAG_PERIODIC,
-                                           rtgui_edit_timeout, (void *)edit);
-    /* set caret to show */
-    edit->flag |= RTGUI_EDIT_CARET;
-    /* start caret timer */
-    if (edit->caret_timer != RT_NULL)
-        rtgui_timer_start(edit->caret_timer);
+    rtgui_caret_start_timer(&edit->caret, RTGUI_EDIT_CARET_TIMEOUT);
 
     return RT_TRUE;
 }
@@ -1715,11 +1587,7 @@ static rt_bool_t rtgui_edit_onunfocus(struct rtgui_object *object, rtgui_event_t
     struct rtgui_edit *edit = RTGUI_EDIT(object);
 
     _edit_hide_caret(edit);
-    if (edit->caret_timer != RT_NULL)
-    {
-        rtgui_timer_destory(edit->caret_timer);
-        edit->caret_timer = RT_NULL;
-    }
+    rtgui_caret_stop_timer(&edit->caret);
 
     return RT_TRUE;
 }
