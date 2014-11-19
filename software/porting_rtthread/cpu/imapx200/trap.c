@@ -149,7 +149,7 @@ void rt_hw_trap_irq(void)
     irq = INTOFFSET;
 	GPEDAT^=(0x01<<2);
     if (irq > 56) return;
-	rt_kprintf("irq enter\r\n");
+	//rt_kprintf("irq enter\r\n");
     /* get interrupt service routine */
     isr_func = isr_table[irq].handler;
     param = isr_table[irq].param;

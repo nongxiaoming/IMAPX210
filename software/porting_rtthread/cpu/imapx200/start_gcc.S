@@ -98,6 +98,16 @@ _reset:
     /* setup stack */
     bl      stack_setup
 
+/* copy exception handle table to ZERO */
+    mov    r0, #0
+    ldr    r1, =_start
+    mov    r2, #0x40
+irqvec_cpy_next:
+    ldr    r3, [r1], #4
+    str    r3, [r0], #4
+    subs   r2, r2, #4
+    bne    irqvec_cpy_next
+	
     /* clear .bss */
     mov     r0,#0                   /* get a zero                       */
     ldr     r1,=__bss_start         /* bss start                        */
@@ -129,42 +139,6 @@ ctor_end:
 _rtthread_startup: 
     .word rtthread_startup
 
-stack_setup:
-    ldr     r0, =stack_top
-
-    @  Enter Undefined Instruction Mode and set its Stack Pointer
-    msr     cpsr_c, #Mode_UND|I_Bit|F_Bit
-    mov     sp, r0
-    sub     r0, r0, #UND_Stack_Size
-
-    @  Enter Abort Mode and set its Stack Pointer
-    msr     cpsr_c, #Mode_ABT|I_Bit|F_Bit
-    mov     sp, r0
-    sub     r0, r0, #ABT_Stack_Size
-
-    @  Enter FIQ Mode and set its Stack Pointer
-    msr     cpsr_c, #Mode_FIQ|I_Bit|F_Bit
-    mov     sp, r0
-    sub     r0, r0, #FIQ_Stack_Size
-
-    @  Enter IRQ Mode and set its Stack Pointer
-    msr     cpsr_c, #Mode_IRQ|I_Bit|F_Bit
-    mov     sp, r0
-    sub     r0, r0, #IRQ_Stack_Size
-
-    @  Enter Supervisor Mode and set its Stack Pointer
-    msr     cpsr_c, #Mode_SVC|I_Bit|F_Bit
-    mov     sp, r0
-    sub     r0, r0, #SVC_Stack_Size
-
-    mov		pc,lr
-
-   /* @  Enter User Mode and set its Stack Pointer
-    mov     sp, r0
-    sub     sl, sp, #USR_Stack_Size
-    bx      lr*/
-
-/*/*}*/
 /* exception handlers: undef, swi, padt, dabt, resv, irq, fiq          */
     .align  5
 .globl vector_undef
@@ -277,3 +251,36 @@ rt_hw_context_switch_interrupt_do:
     msr     spsr_cxsf, r4
 
     ldmfd   sp!, {r0-r12,lr,pc}^ @ pop new task's r0-r12,lr & pc, copy spsr to cpsr
+
+stack_setup:
+    ldr     r0, =stack_top
+
+    @  Enter Undefined Instruction Mode and set its Stack Pointer
+    msr     cpsr_c, #Mode_UND|I_Bit|F_Bit
+    mov     sp, r0
+    sub     r0, r0, #UND_Stack_Size
+
+    @  Enter Abort Mode and set its Stack Pointer
+    msr     cpsr_c, #Mode_ABT|I_Bit|F_Bit
+    mov     sp, r0
+    sub     r0, r0, #ABT_Stack_Size
+
+    @  Enter FIQ Mode and set its Stack Pointer
+    msr     cpsr_c, #Mode_FIQ|I_Bit|F_Bit
+    mov     sp, r0
+    sub     r0, r0, #FIQ_Stack_Size
+
+    @  Enter IRQ Mode and set its Stack Pointer
+    msr     cpsr_c, #Mode_IRQ|I_Bit|F_Bit
+    mov     sp, r0
+    sub     r0, r0, #IRQ_Stack_Size
+
+    @  Enter Supervisor Mode and set its Stack Pointer
+    msr     cpsr_c, #Mode_SVC|I_Bit|F_Bit
+    mov     sp, r0
+    sub     r0, r0, #SVC_Stack_Size
+
+   /* @  Enter User Mode and set its Stack Pointer
+    mov     sp, r0
+    sub     sl, sp, #USR_Stack_Size*/
+    bx      lr

@@ -81,7 +81,7 @@ void rt_init_thread_entry(void *parameter)
         extern void application_init(void);
 
         rt_device_t lcd;
-         
+
         /* init lcd */
         rt_hw_lcd_init();
         /* re-init device driver */
@@ -108,8 +108,22 @@ void rt_init_thread_entry(void *parameter)
     finsh_system_init();
     finsh_set_device(FINSH_DEVICE_NAME);
 #endif
+    while (1)
+    {
+        rt_kprintf("main thread \r\n");
+        rt_thread_delay(RT_TICK_PER_SECOND);
+    }
 }
+/* thread phase init */
+void rt_thread1_entry(void *parameter)
+{
 
+    while (1)
+    {
+        rt_kprintf("thread 1 \r\n");
+        rt_thread_delay(RT_TICK_PER_SECOND / 2);
+    }
+}
 int rt_application_init(void)
 {
     rt_thread_t tid;
@@ -117,6 +131,10 @@ int rt_application_init(void)
     tid = rt_thread_create("init",
                            rt_init_thread_entry, RT_NULL,
                            2048, RT_THREAD_PRIORITY_MAX / 3, 20);
+    if (tid != RT_NULL) rt_thread_startup(tid);
+    tid = rt_thread_create("thread1",
+                           rt_thread1_entry, RT_NULL,
+                           1024, 20, 5);
     if (tid != RT_NULL) rt_thread_startup(tid);
 
     return 0;
