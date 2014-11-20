@@ -2,9 +2,9 @@
 #include "drv_touch.h"
 
 /*
-TOUCH INT: P0_13
+TOUCH INT: GPG1
 */
-#define IS_TOUCH_UP()     (LPC_GPIO0->PIN&(0x01<<13))
+#define IS_TOUCH_UP()     (GPGDAT&(0x01<<1))
 
 #include <rtthread.h>
 #include <rtdevice.h>
