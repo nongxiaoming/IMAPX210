@@ -39,7 +39,7 @@ struct imapx200_spi_bus
 
 struct imapx200_spi_cs
 {
-    rt_uint32_t *port;
+    rt_uint32_t port;
     uint8_t pin;
 };
 
