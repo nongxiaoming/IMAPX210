@@ -1,7 +1,10 @@
 #ifndef __DRV_LED_H
 #define __DRV_LED_H
-
-#include <rtthread.h>
 #include "board.h"
-void rt_hw_led_init(void);
+
+#define led_on()   GPEDAT|=(0x01 << 2)
+#define led_off()  GPEDAT&=~(0x01 << 2)
+
+void rt_led_hw_init(void);
+
 #endif

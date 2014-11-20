@@ -19,7 +19,6 @@
 #include "mmu.h"
 
 #include "drv_uart.h"
-#include "drv_led.h"
 
 /**
  * This function will handle rtos timer
@@ -51,12 +50,12 @@ void rt_hw_board_init()
 
     /* initialize system clock */
     rt_hw_clock_init();
-    rt_kprintf("init hardware interrupt\r\n");
+    //rt_kprintf("init hardware interrupt\r\n");
     /* init hardware interrupt */
     rt_hw_interrupt_init();
 
     MEM_SWAP = 0x01;
-    rt_kprintf("initialize uart\r\n");
+    //rt_kprintf("initialize uart\r\n");
     /* initialize uart */
     rt_hw_uart_init();
     //rt_kprintf("enable cpu cache\r\n");
@@ -68,13 +67,10 @@ void rt_hw_board_init()
     //rt_hw_mmu_init();
 
     /* set the console device*/
-    //rt_console_set_device(RT_CONSOLE_DEVICE_NAME);
+    rt_console_set_device(RT_CONSOLE_DEVICE_NAME);
     rt_kprintf("initialize timer0\r\n");
     /* initialize timer0 */
     rt_timer_hw_init();
-
-    /* initialize led*/
-    //rt_led_hw_init();
 
     return;
 }

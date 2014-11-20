@@ -15,6 +15,7 @@
 #include <rtthread.h>
 
 #include <board.h>
+#include "drv_led.h"
 //#include <components.h>
 #ifdef RT_USING_LWIP
 #include <drv_emac.h>
@@ -25,19 +26,19 @@
 /* thread phase init */
 void rt_init_thread_entry(void *parameter)
 {
-#ifdef RT_USING_SPI
-    {
-        extern void rt_hw_spi0_init(void);
-        rt_hw_spi0_init();
-    }
-#endif
-#ifdef RT_USING_I2C
-    {
-        extern void rt_hw_i2c_init(void);
-        rt_i2c_core_init();
-        rt_hw_i2c_init();
-    }
-#endif
+//#ifdef RT_USING_SPI
+//    {
+//        extern void rt_hw_spi0_init(void);
+//        rt_hw_spi0_init();
+//    }
+//#endif
+//#ifdef RT_USING_I2C
+//    {
+//        extern void rt_hw_i2c_init(void);
+//        rt_i2c_core_init();
+//        rt_hw_i2c_init();
+//    }
+//#endif
 
     /* Filesystem Initialization */
 #ifdef RT_USING_DFS
@@ -94,10 +95,10 @@ void rt_init_thread_entry(void *parameter)
             rtgui_graphic_set_device(lcd);
             /* init rtgui system server */
             rtgui_system_server_init();
-            rt_hw_joystick_init();
-            rtgui_touch_hw_init("spi20");
+            //rt_hw_joystick_init();
+           // rtgui_touch_hw_init("spi20");
             /* startup rtgui in demo of RT-Thread/GUI examples */
-            application_init();
+            //application_init();
         }
 
     }
@@ -108,20 +109,18 @@ void rt_init_thread_entry(void *parameter)
     finsh_system_init();
     finsh_set_device(FINSH_DEVICE_NAME);
 #endif
-    while (1)
-    {
-        rt_kprintf("main thread \r\n");
-        rt_thread_delay(RT_TICK_PER_SECOND);
-    }
 }
 /* thread phase init */
-void rt_thread1_entry(void *parameter)
+void rt_led_thread_entry(void *parameter)
 {
-
+	/* initialize led*/
+	rt_led_hw_init();
     while (1)
     {
-        rt_kprintf("thread 1 \r\n");
-        rt_thread_delay(RT_TICK_PER_SECOND / 2);
+		led_on();
+        rt_thread_delay(RT_TICK_PER_SECOND);
+		led_off();
+		rt_thread_delay(RT_TICK_PER_SECOND);
     }
 }
 int rt_application_init(void)
@@ -132,8 +131,8 @@ int rt_application_init(void)
                            rt_init_thread_entry, RT_NULL,
                            2048, RT_THREAD_PRIORITY_MAX / 3, 20);
     if (tid != RT_NULL) rt_thread_startup(tid);
-    tid = rt_thread_create("thread1",
-                           rt_thread1_entry, RT_NULL,
+    tid = rt_thread_create("led",
+		                   rt_led_thread_entry, RT_NULL,
                            1024, 20, 5);
     if (tid != RT_NULL) rt_thread_startup(tid);
 
