@@ -93,11 +93,7 @@
 // </section>
 
 // <section name="LIBC" description="C Runtime library setting" default="always" >
-// <bool name="RT_USING_NEWLIB" description="Using newlib library, only available under GNU GCC" default="true" />
-//#define RT_USING_NEWLIB
-#define RT_USING_ARM_LIBC
-// <bool name="RT_USING_PTHREADS" description="Using POSIX threads library" default="true" />
-//#define RT_USING_PTHREADS
+#define RT_USING_LIBC
 // </section>
 
 // <section name="RT_USING_DFS" description="Device file system" default="true" >
@@ -201,7 +197,8 @@
 // <bool name="RTGUI_USING_FONT16" description="Support 16 weight font" default="true" />
 #define RTGUI_USING_FONT16
 // <bool name="RTGUI_USING_FONT12" description="Support 12 weight font" default="true" />
-#define RTGUI_USING_FONT12
+//#define RTGUI_USING_FONT12
+#define RTGUI_DEFAULT_FONT_SIZE 16
 // <bool name="RTGUI_USING_FONTHZ" description="Support Chinese font" default="true" />
 #define RTGUI_USING_FONTHZ
 // <bool name="RTGUI_USING_DFS_FILERW" description="Using DFS as file interface " default="true" />
@@ -211,17 +208,23 @@
 // <bool name="RTGUI_USING_HZ_BMP" description="Using Chinese bitmap font" default="true" />
 #define RTGUI_USING_HZ_BMP
 // <bool name="RTGUI_USING_SMALL_SIZE" description="Using small size in RTGUI" default="false" />
-// #define RTGUI_USING_SMALL_SIZE
+#define RTGUI_USING_SMALL_SIZE
 // <bool name="RTGUI_USING_MOUSE_CURSOR" description="Using mouse cursor in RTGUI" default="false" />
 // #define RTGUI_USING_MOUSE_CURSOR
 // <bool name="RTGUI_IMAGE_XPM" description="Using xpm image in RTGUI" default="true" />
-//#define RTGUI_IMAGE_XPM
+#define RTGUI_IMAGE_XPM
 // <bool name="RTGUI_IMAGE_JPEG" description="Using jpeg image in RTGUI" default="true" />
 //#define RTGUI_IMAGE_JPEG
 // <bool name="RTGUI_IMAGE_PNG" description="Using png image in RTGUI" default="true" />
 //#define RTGUI_IMAGE_PNG
 // <bool name="RTGUI_IMAGE_BMP" description="Using bmp image in RTGUI" default="true" />
 //#define RTGUI_IMAGE_BMP
+// <bool name="RTGUI_USING_NOTEBOOK_IMAGE" description="Using notebook image in RTGUI" default="true" />
+#define RTGUI_USING_NOTEBOOK_IMAGE
+// <bool name="RTGUI_USING_HW_CURSOR" description="Using hardware cursor in RTGUI" default="true" />
+//#define RTGUI_USING_HW_CURSOR
+// <bool name="RTGUI_USING_CALI" description="Using calibration application in rtGUI" default="true" />
+//#define RTGUI_USING_CALI
 // </section>
 
 // </RDTConfigurator>
