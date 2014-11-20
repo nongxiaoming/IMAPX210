@@ -23,6 +23,10 @@
 #ifdef RT_USING_I2C
 #include "drivers/i2c.h"
 #endif
+#ifdef RT_USING_RTGUI
+#include "drv_lcd.h"
+#include "drv_key.h"
+#endif
 /* thread phase init */
 void rt_init_thread_entry(void *parameter)
 {
@@ -39,6 +43,10 @@ void rt_init_thread_entry(void *parameter)
 //        rt_hw_i2c_init();
 //    }
 //#endif
+#ifdef  RT_USING_LIBC
+	/* init libc */
+	libc_system_init(RT_CONSOLE_DEVICE_NAME);
+#endif
 
     /* Filesystem Initialization */
 #ifdef RT_USING_DFS
@@ -95,10 +103,10 @@ void rt_init_thread_entry(void *parameter)
             rtgui_graphic_set_device(lcd);
             /* init rtgui system server */
             rtgui_system_server_init();
-            //rt_hw_joystick_init();
+            rt_hw_key_init();
            // rtgui_touch_hw_init("spi20");
             /* startup rtgui in demo of RT-Thread/GUI examples */
-            //application_init();
+            application_init();
         }
 
     }

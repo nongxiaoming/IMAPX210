@@ -6,13 +6,13 @@
 #include <rtgui/rtgui_server.h>
 
 /**
-* VOL-:XUNRTS1  <---> 
-* VOL+:XNDCS1N  <---> PE14/EINT4[14]
-* HOME:XUTXD1   <---> GPA[5]/EINT1[5]
-* MENU:XSD2DAT3 <---> GPO[11]/EINT4[27]
+* VOL-:XUNRTS1  <---> PE14/EINT4[14]  left
+* VOL+:XNDCS1N  <---> GPA[5]/EINT1[5]  right 
+* HOME:XUTXD1   <---> 
+* MENU:XSD2DAT3 <---> GPO[11]/EINT4[27] enter
 */
-#define key_left_GETVALUE()     (GPADAT&(1<<5))      
-#define key_right_GETVALUE()    (GPEDAT&(1<<14))        
+#define key_right_GETVALUE()     (GPADAT&(1<<5))      
+#define key_left_GETVALUE()    (GPEDAT&(1<<14))        
 #define key_enter_GETVALUE()    (GPODAT&(1<<11))       
 
 

@@ -278,10 +278,10 @@ static rt_err_t rt_lcd_init(rt_device_t dev)
 	//选择window0的BUF0，使用两个BUF，使用24BPP_RGB888模式
 	OVCW0CR = IMAP_OVCWxCR_BUFSEL_BUF0 | IMAP_OVCWxCR_BUFNUM_2BUFS | IMAP_OVCWxCR_BPPMODE_24BPP_RGB888;
 	
-    lcd_framebuffer = rt_malloc_align(sizeof(rt_uint32_t) * RT_HW_LCD_HEIGHT * RT_HW_LCD_WIDTH, 32);
-    rt_memset(lcd_framebuffer, 0, sizeof(rt_uint32_t) * RT_HW_LCD_HEIGHT * RT_HW_LCD_WIDTH);
+    //lcd_framebuffer = rt_malloc_align(sizeof(rt_uint32_t) * RT_HW_LCD_HEIGHT * RT_HW_LCD_WIDTH, 32);
+   // rt_memset(lcd_framebuffer, 0, sizeof(rt_uint32_t) * RT_HW_LCD_HEIGHT * RT_HW_LCD_WIDTH);
 	//设置window0的BUF0的framebuffer地址
-	OVCW0B0SAR = (rt_uint32_t)lcd_framebuffer;
+	OVCW0B0SAR = (rt_uint32_t)_rt_framebuffer;
 
 	//
 	// Enable LCD
@@ -303,7 +303,7 @@ static rt_err_t rt_lcd_control(rt_device_t dev, rt_uint8_t cmd, void *args)
     switch (cmd)
     {
     case RTGRAPHIC_CTRL_RECT_UPDATE:
-        rt_memcpy((void *)lcd_framebuffer, _rt_framebuffer, sizeof(rt_uint32_t)*RT_HW_LCD_HEIGHT * RT_HW_LCD_WIDTH);
+       // rt_memcpy((void *)lcd_framebuffer, _rt_framebuffer, sizeof(rt_uint32_t)*RT_HW_LCD_HEIGHT * RT_HW_LCD_WIDTH);
 
         break;
     case RTGRAPHIC_CTRL_POWERON:
@@ -346,7 +346,7 @@ void rt_hw_lcd_init(void)
 		return;
 	}
     _lcd_info.bits_per_pixel = 32;
-    _lcd_info.pixel_format = RTGRAPHIC_PIXEL_FORMAT_RGB888;
+	_lcd_info.pixel_format = RTGRAPHIC_PIXEL_FORMAT_RGB888;
     _lcd_info.framebuffer = (void *)_rt_framebuffer;
     _lcd_info.width = RT_HW_LCD_WIDTH;
     _lcd_info.height = RT_HW_LCD_HEIGHT;

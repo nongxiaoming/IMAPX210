@@ -60,8 +60,8 @@ void rt_hw_board_init()
     rt_hw_uart_init();
     //rt_kprintf("enable cpu cache\r\n");
     /* enable cpu cache */
-    //rt_hw_cpu_icache_enable();
-    //rt_hw_cpu_dcache_enable();
+    rt_hw_cpu_icache_enable();
+    rt_hw_cpu_dcache_enable();
     //rt_kprintf("initialize mmu\r\n");
     /* initialize mmu */
     //rt_hw_mmu_init();

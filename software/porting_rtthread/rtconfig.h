@@ -17,9 +17,9 @@
 // <integer name="RT_TICK_PER_SECOND" description="OS tick per second" default="100" />
 #define RT_TICK_PER_SECOND	100
 // <section name="RT_DEBUG" description="Kernel Debug Configuration" default="true" >
-// #define RT_DEBUG
+#define RT_DEBUG
 // <bool name="RT_THREAD_DEBUG" description="Thread debug enable" default="false" />
-// #define RT_THREAD_DEBUG
+#define RT_THREAD_DEBUG
 // <bool name="RT_USING_OVERFLOW_CHECK" description="Thread stack over flow detect" default="true" />
 #define RT_USING_OVERFLOW_CHECK
 // <bool name="RT_USING_INTERRUPT_INFO" description="Show more interrupt description" default="true" />
@@ -208,7 +208,7 @@
 // <bool name="RTGUI_USING_HZ_BMP" description="Using Chinese bitmap font" default="true" />
 #define RTGUI_USING_HZ_BMP
 // <bool name="RTGUI_USING_SMALL_SIZE" description="Using small size in RTGUI" default="false" />
-#define RTGUI_USING_SMALL_SIZE
+//#define RTGUI_USING_SMALL_SIZE
 // <bool name="RTGUI_USING_MOUSE_CURSOR" description="Using mouse cursor in RTGUI" default="false" />
 // #define RTGUI_USING_MOUSE_CURSOR
 // <bool name="RTGUI_IMAGE_XPM" description="Using xpm image in RTGUI" default="true" />
