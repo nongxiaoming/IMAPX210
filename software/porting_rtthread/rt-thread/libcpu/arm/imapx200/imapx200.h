@@ -2,13 +2,16 @@
 #define __X200_H
 
 #include <rtthread.h>
-#include "imapx200_gpio.h"
-#include "imapx200_uart.h"
-#include "imapx200_lcd.h"
-#include "imapx200_clock.h"
-#include "imapx200_rtc.h"
-#include "imapx200_irq.h"
-#include "imapx200_timer.h"
+#include "imap/imapx200_gpio.h"
+#include "imap/imapx200_uart.h"
+#include "imap/imapx200_lcd.h"
+#include "imap/imapx200_clock.h"
+#include "imap/imapx200_rtc.h"
+#include "imap/imapx200_irq.h"
+#include "imap/imapx200_timer.h"
+#include "imap/imapx200_spi.h"
+#include "imap/imapx200_ssi.h"
+#include "imap/imapx200_i2c.h"
 
 /*定义位操作*/
 #define BIT(x) (BIT0<<x)

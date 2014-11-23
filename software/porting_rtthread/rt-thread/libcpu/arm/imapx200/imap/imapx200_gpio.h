@@ -1,5 +1,6 @@
 #ifndef __IMAP_GPIO_H
 #define __IMAP_GPIO_H
+
 typedef struct
 {
  unsigned long DAT;
