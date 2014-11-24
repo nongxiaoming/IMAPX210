@@ -10,8 +10,8 @@ typedef struct
  unsigned long PRE;	//SPI baud rate prescaler
  unsigned long TDAT;	//SPI Tx data
  unsigned long RDAT;	//SPI Rx data
-}IMAP_GPIO_TypeDef;
+}IMAP_SPI_TypeDef;
 
-#define IMAP_SPI ((IMAP_GPIO_TypeDef*)IMAP_SPI_BASE)
+#define IMAP_SPI ((IMAP_SPI_TypeDef*)IMAP_SPI_BASE)
 
 #endif

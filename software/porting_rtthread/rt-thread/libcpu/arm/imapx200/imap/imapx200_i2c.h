@@ -43,8 +43,8 @@ unsigned long ENABLE_STATUS;          //IIC enable status register
 unsigned long SDA_CFG0;               //SDA Configuration Register
 }IMAP_I2C_TypeDef;
 
-#define IMAPX_I2C0 ((IMAP_I2C_TypeDef*)I2C0_BASE);
-#define IMAPX_I2C1 ((IMAP_I2C_TypeDef*)I2C1_BASE);
+#define IMAP_I2C0 ((IMAP_I2C_TypeDef*)I2C0_BASE);
+#define IMAP_I2C1 ((IMAP_I2C_TypeDef*)I2C1_BASE);
 
 //Bit Control
 #define I2C_ENABLE			(0x1)
