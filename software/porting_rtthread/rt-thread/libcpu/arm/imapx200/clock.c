@@ -91,11 +91,11 @@ void rt_hw_clock_init(void)
 		NPOW_CFG =0x3f;
    
 
-	clk= imapx200_get_pll(APLL_CFG,12000000);
+	//clk= imapx200_get_pll(APLL_CFG,12000000);
 	// debug("APLL:%dM\r\n",clk/1000000);
-	 clk= imapx200_get_pll(DPLL_CFG,12000000);
+	 //clk= imapx200_get_pll(DPLL_CFG,12000000);
 	// debug("DPLL:%dM\r\n",clk/1000000);
-	 clk= imapx200_get_pll(EPLL_CFG,12000000);
+	 //clk= imapx200_get_pll(EPLL_CFG,12000000);
 	 
 	 //debug("EPLL:%dM\r\n",clk/1000000);
 	 //debug("PLL_OCLKSEL:0x%x\r\n",PLL_OCLKSEL);
