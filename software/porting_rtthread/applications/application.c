@@ -20,22 +20,24 @@
 #ifdef RT_USING_LWIP
 #include <drv_emac.h>
 #endif
+#ifdef RT_USING_SPI
+#include "drv_ssi.h"
+#include "drv_spi.h"
+#endif
 #ifdef RT_USING_I2C
 #include "drivers/i2c.h"
 #endif
 #ifdef RT_USING_RTGUI
 #include "drv_lcd.h"
 #include "drv_key.h"
+#include "drv_touch.h"
 #endif
 /* thread phase init */
 void rt_init_thread_entry(void *parameter)
 {
-//#ifdef RT_USING_SPI
-//    {
-//        extern void rt_hw_spi0_init(void);
-//        rt_hw_spi0_init();
-//    }
-//#endif
+#ifdef RT_USING_SPI
+	rt_hw_ssi_init();
+#endif
 //#ifdef RT_USING_I2C
 //    {
 //        extern void rt_hw_i2c_init(void);
@@ -104,7 +106,7 @@ void rt_init_thread_entry(void *parameter)
             /* init rtgui system server */
             rtgui_system_server_init();
             rt_hw_key_init();
-           // rtgui_touch_hw_init("spi20");
+            rtgui_touch_hw_init("ssi00");
             /* startup rtgui in demo of RT-Thread/GUI examples */
             application_init();
         }

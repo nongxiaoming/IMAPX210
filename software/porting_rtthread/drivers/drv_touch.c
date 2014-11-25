@@ -54,6 +54,7 @@ s  A2-A0 MODE SER/DFR PD1-PD0
 #define SAMP_CNT 8                              //the adc array size
 #define SAMP_CNT_DIV2 4                         //the middle of the adc array
 #define SH   20                                 // Valve value
+
 struct rtgui_touch_device
 {
     struct rt_device parent;
@@ -67,8 +68,8 @@ static struct rtgui_touch_device *touch = RT_NULL;
 
 rt_inline void touch_int_enable(rt_bool_t);
 
-#define X_WIDTH 480
-#define Y_WIDTH 272
+#define X_WIDTH 1024
+#define Y_WIDTH 600
 
 static void rtgui_touch_calculate(void)
 {
@@ -139,7 +140,7 @@ static void rtgui_touch_calculate(void)
                 adc_x = (total_x >> 2);
                 adc_y = (total_y >> 2);
 
-                // rt_kprintf("touch->x:%d touch->y:%d\r\n", adc_x, adc_y);
+                rt_kprintf("touch->x:%d touch->y:%d\r\n", adc_x, adc_y);
             } /* calculate average */
         } /* read touch */
 
@@ -154,29 +155,31 @@ rt_inline void touch_int_enable(rt_bool_t en)
     if (RT_TRUE == en)
     {
         /* enable P0.13 failling edge interrupt */
-        //LPC_GPIOINT->IO0IntEnF |= (0x01 << 13);
+		rt_hw_interrupt_umask(EINT1_IRQ);
     }
     else
     {
         /* disable P0.13 failling edge interrupt */
-        //LPC_GPIOINT->IO0IntEnF &= ~(0x01 << 13);
+		rt_hw_interrupt_mask(EINT1_IRQ);
     }
 }
-
+void Touch_IRQHandler(int vector, void *param)
+{
+	/* disable interrupt */
+	touch_int_enable(RT_FALSE);
+	rt_event_send(&touch->event, 0x01);
+}
 static void touch_int_config(void)
 {
-    /* P0.13 touch INT */
-    {
-        //LPC_IOCON->P0_13 &= ~0x07;
-        //LPC_GPIO0->DIR &= ~(0x01 << 13);
-    }
-    /* Configure  EXTI  */
-    //LPC_GPIOINT->IO0IntEnF |= (0x01 << 13);
-    //touch_int_enable(RT_TRUE);
-    //NVIC_SetPriority(GPIO_IRQn, ((0x01 << 3) | 0x01));
-    //NVIC_EnableIRQ(GPIO_IRQn);
+	/* Configure  RINT1  */
+	IMAP_EINT->EINTCON &= ~(0xf << 4);
+	IMAP_EINT->EINTCON |= (0x03 << 4);
+	IMAP_EINT->EINTFLTCON0 &= ~(0xff << 8);
+	IMAP_EINT->EINTFLTCON0 |= (0x01 << 15) | (100 << 8);
+	/* install interrupt handler */
+	rt_hw_interrupt_install(EINT1_IRQ, Touch_IRQHandler, RT_NULL, "touch");
+	touch_int_enable(RT_TRUE);
 }
-
 /* RT-Thread Device Interface */
 static rt_err_t touch_device_init(rt_device_t dev)
 {
@@ -248,17 +251,6 @@ static void touch_thread_entry(void *parameter)
             } /* read touch */
         } /* event recv */
     } /* thread while(1) */
-}
-
-void Touch_IRQHandler(void)
-{
- /*   if ((LPC_GPIOINT->IO0IntStatF >> 13) & 0x01)
-    {*/
-        /* disable interrupt */
-        touch_int_enable(RT_FALSE);
-        rt_event_send(&touch->event, 1);
-   /*     LPC_GPIOINT->IO0IntClr |= (1 << 13);
-    }*/
 }
 
 rt_err_t rtgui_touch_hw_init(const char *spi_device_name)

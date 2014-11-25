@@ -125,11 +125,11 @@ static rt_uint32_t xfer(struct rt_spi_device *device, struct rt_spi_message *mes
                 }
 
                 //Wait until the transmit buffer is empty
-				while ((spi_bus->ssi->SR & ((0x01 << 1) | (0x01 << 4))) != 0x02);
+				while ((spi_bus->ssi->SR & (0x01 << 2)) == 0x00);
                 // Send the byte
                 spi_bus->ssi->DR = data;
                 //Wait until a data is received
-				while ((spi_bus->ssi->SR & ((0x01 << 2) | (0x01 << 4))) != 0x04);
+				while ((spi_bus->ssi->SR & (0x01 << 2)) == 0x00);
                 // Get the received data
                 data = spi_bus->ssi->DR;
                 if (recv_ptr != RT_NULL)
@@ -202,12 +202,14 @@ int rt_hw_ssi_init(void)
         static struct rt_spi_device spi_device;
         static struct imapx200_ssi_cs  spi_cs1;
         /* spi10: PE7 */
-        
+		IMAP_GPE->CON &= ~(0x03 << 14);
+		IMAP_GPE->CON |=  (0x01 << 14);
+		IMAP_GPE->PUD |= (0x01 << 7);
 		spi_cs1.port = IMAP_GPE->DAT;
         spi_cs1.pin = 7;
         spi_cs1.port |= (0x01 << spi_cs1.pin);
 
-        rt_spi_bus_attach_device(&spi_device, "ssi10", "ssi0", (void *)&spi_cs1);
+        rt_spi_bus_attach_device(&spi_device, "ssi00", "ssi0", (void *)&spi_cs1);
     }
 
     return 0;
