@@ -225,7 +225,7 @@ int rt_hw_spi_init(void)
         static struct imapx200_spi_cs  spi_cs1;
         /* spi10: PE7 */
         
-        spi_cs1.port = GPEDAT;
+		spi_cs1.port = IMAP_GPE->DAT;
         spi_cs1.pin = 7;
         spi_cs1.port |= (0x01 << spi_cs1.pin);
 

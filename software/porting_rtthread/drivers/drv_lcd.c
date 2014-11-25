@@ -64,16 +64,16 @@ static struct rt_device  lcd;
 static void lcd_gpio_init(void)
 {
 	/*配置GPM0~GPM15连接都VD0到VD15*/
-	GPMCON = 0xaaaaaaaa;
-	GPMPUD = 0x00000000;
+	IMAP_GPM->CON = 0xaaaaaaaa;
+	IMAP_GPM->PUD = 0x00000000;
 	/*配置GPN连接到LCD*/
-	GPNCON = 0x2aaaaaa;
-	GPNPUD = 0x00000000;
+	IMAP_GPN->CON = 0x2aaaaaa;
+	IMAP_GPN->PUD = 0x00000000;
 	//配置背光线为输出
-	GPACON &= ~(0x3 << 12);
-	GPACON |= (0x01 << 12);
+	IMAP_GPA->CON &= ~(0x3 << 12);
+	IMAP_GPA->CON |= (0x01 << 12);
 	//打开背光
-	GPADAT |= (0x01 << 6);
+	IMAP_GPA->DAT |= (0x01 << 6);
 
 }
 

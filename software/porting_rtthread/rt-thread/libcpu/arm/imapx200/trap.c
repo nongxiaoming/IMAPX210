@@ -147,7 +147,7 @@ void rt_hw_trap_irq(void)
     void *param;
 
     irq = INTOFFSET;
-	GPEDAT^=(0x01<<2);
+
     if (irq > 56) return;
 	//rt_kprintf("irq enter\r\n");
     /* get interrupt service routine */

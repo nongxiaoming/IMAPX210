@@ -4,9 +4,10 @@
 void rt_led_hw_init(void)
 {
 	/* led0 :GPE2*/
-	GPECON &= ~(0x03 << 4);   //设置GPE2为GPIO输出
-	GPECON |= (0x01 << 4);   //设置GPE2为GPIO输出
-	GPEDAT &= ~(0x01 << 2);      //设置GPE2输出高电平，关闭LED
+	IMAP_GPE->CON &= ~(0x03 << 4);   //设置GPE2为GPIO输出
+	IMAP_GPE->CON |= (0x01 << 4);   //设置GPE2为GPIO输出
+	IMAP_GPE->DAT &= ~(0x01 << 2);      //设置GPE2输出高电平，关闭LED
+	
 }
 
 #ifdef RT_USING_FINSH

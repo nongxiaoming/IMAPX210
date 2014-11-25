@@ -4,7 +4,7 @@
 /*
 TOUCH INT: GPG1
 */
-#define IS_TOUCH_UP()     (GPGDAT&(0x01<<1))
+#define IS_TOUCH_UP()     (IMAP_GPG->DAT&(0x01<<1))
 
 #include <rtthread.h>
 #include <rtdevice.h>

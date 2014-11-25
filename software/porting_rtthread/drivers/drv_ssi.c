@@ -191,8 +191,8 @@ int rt_hw_ssi_init(void)
     /* register spi bus */
     {
         static struct imapx200_ssi_bus imapx200_spi1;
-		GPECON &= ~((0x03<<8)|(0x03<<10)|(0x03<<12));
-		GPECON |= (0x02 << 8) | (0x02 << 10) | (0x02 << 12);
+		IMAP_GPE->CON &= ~((0x03 << 8) | (0x03 << 10) | (0x03 << 12));
+		IMAP_GPE->CON |= (0x02 << 8) | (0x02 << 10) | (0x02 << 12);
 		imapx200_spi1.ssi = IMAP_MSSI0;
 		//rt_device_register(&imapx200_spi1.parent, "ssi0",)
 		rt_spi_bus_register(&imapx200_spi1.parent, "ssi0", &imapx200_spi_ops);
@@ -203,7 +203,7 @@ int rt_hw_ssi_init(void)
         static struct imapx200_ssi_cs  spi_cs1;
         /* spi10: PE7 */
         
-        spi_cs1.port = GPEDAT;
+		spi_cs1.port = IMAP_GPE->DAT;
         spi_cs1.pin = 7;
         spi_cs1.port |= (0x01 << spi_cs1.pin);
 

@@ -11,9 +11,9 @@
 * HOME:XUTXD1   <---> 
 * MENU:XSD2DAT3 <---> GPO[11]/EINT4[27] enter
 */
-#define key_right_GETVALUE()     (GPADAT&(1<<5))      
-#define key_left_GETVALUE()    (GPEDAT&(1<<14))        
-#define key_enter_GETVALUE()    (GPODAT&(1<<11))       
+#define key_right_GETVALUE()     (IMAP_GPA->DAT&(1<<5))      
+#define key_left_GETVALUE()      (IMAP_GPE->DAT&(1<<14))        
+#define key_enter_GETVALUE()     (IMAP_GPO->DAT&(1<<11))       
 
 
 /************************************************************************************************************
@@ -24,9 +24,9 @@
 ************************************************************************************************************/
 static void key_gpio_config(void)
 {
-	GPACON &= ~(0x03 << 10);
-	GPECON &= ~(0x03 << 28);
-	GPOCON &= ~(0x03 << 22);
+	IMAP_GPA->CON &= ~(0x03 << 10);
+	IMAP_GPE->CON &= ~(0x03 << 28);
+	IMAP_GPO->CON &= ~(0x03 << 22);
 }
 
 static void key_thread_entry(void *parameter)
