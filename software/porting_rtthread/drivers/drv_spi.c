@@ -133,7 +133,7 @@ static rt_uint32_t xfer(struct rt_spi_device *device, struct rt_spi_message *mes
     /* take CS */
     if (message->cs_take)
     {
-        spi_cs->port &= ~(0x01 << spi_cs->pin);
+        spi_cs->port->DAT &= ~(0x01 << spi_cs->pin);
     }
 
     {
@@ -200,7 +200,7 @@ static rt_uint32_t xfer(struct rt_spi_device *device, struct rt_spi_message *mes
     /* release CS */
     if (message->cs_release)
     {
-        spi_cs->port |= (0x01 << spi_cs->pin);
+        spi_cs->port->DAT |= (0x01 << spi_cs->pin);
     }
 
     return message->length;
@@ -225,9 +225,9 @@ int rt_hw_spi_init(void)
         static struct imapx200_spi_cs  spi_cs1;
         /* spi10: PE7 */
         
-		spi_cs1.port = IMAP_GPE->DAT;
+		spi_cs1.port = IMAP_GPE;
         spi_cs1.pin = 7;
-        spi_cs1.port |= (0x01 << spi_cs1.pin);
+        spi_cs1.port->DAT |= (0x01 << spi_cs1.pin);
 
         rt_spi_bus_attach_device(&spi_device, "spi10", "spi1", (void *)&spi_cs1);
     }

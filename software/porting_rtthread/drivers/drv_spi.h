@@ -39,7 +39,7 @@ struct imapx200_spi_bus
 
 struct imapx200_spi_cs
 {
-    rt_uint32_t port;
+	IMAP_GPIO_TypeDef* port;
     uint8_t pin;
 };
 
