@@ -106,7 +106,7 @@ static rt_uint32_t xfer(struct rt_spi_device *device, struct rt_spi_message *mes
     /* take CS */
     if (message->cs_take)
     {
-        spi_cs->port &= ~(0x01 << spi_cs->pin);
+		spi_cs->port->DAT &= ~(0x01 << spi_cs->pin);
     }
 
     {
@@ -173,12 +173,15 @@ static rt_uint32_t xfer(struct rt_spi_device *device, struct rt_spi_message *mes
     /* release CS */
     if (message->cs_release)
     {
-        spi_cs->port |= (0x01 << spi_cs->pin);
+        spi_cs->port->DAT |= (0x01 << spi_cs->pin);
     }
 
     return message->length;
 };
 
+static struct imapx200_ssi_bus imapx200_spi1;
+static struct rt_spi_device spi_device;
+static struct imapx200_ssi_cs  spi_cs1;
 /* SPI
 SPI_MOSI: XSSITXD <---> PE4
 SPI_MISO: XSSIRXD <---> PE5
@@ -190,7 +193,7 @@ int rt_hw_ssi_init(void)
 
     /* register spi bus */
     {
-        static struct imapx200_ssi_bus imapx200_spi1;
+      
 		IMAP_GPE->CON &= ~((0x03 << 8) | (0x03 << 10) | (0x03 << 12));
 		IMAP_GPE->CON |= (0x02 << 8) | (0x02 << 10) | (0x02 << 12);
 		imapx200_spi1.ssi = IMAP_MSSI0;
@@ -199,15 +202,13 @@ int rt_hw_ssi_init(void)
     }
     /* attach cs */
     {
-        static struct rt_spi_device spi_device;
-        static struct imapx200_ssi_cs  spi_cs1;
         /* spi10: PE7 */
 		IMAP_GPE->CON &= ~(0x03 << 14);
 		IMAP_GPE->CON |=  (0x01 << 14);
 		IMAP_GPE->PUD |= (0x01 << 7);
-		spi_cs1.port = IMAP_GPE->DAT;
+		spi_cs1.port = IMAP_GPE;
         spi_cs1.pin = 7;
-        spi_cs1.port |= (0x01 << spi_cs1.pin);
+		spi_cs1.port->DAT |= (0x01 << spi_cs1.pin);
 
         rt_spi_bus_attach_device(&spi_device, "ssi00", "ssi0", (void *)&spi_cs1);
     }
