@@ -6,41 +6,43 @@
 
 typedef struct
 {
-unsigned long CON;                //IIC Control register
-unsigned long TAR;              //IIC Targer address register
-unsigned long SAR;              //IIC Slave address register
-unsigned long HS_MADDR;         //IIC High speed master mode code address register
-unsigned long DATA_CMD;         //IIC Rx/Tx data buffer and command register
-unsigned long SS_SCL_HCNT;      //Standard speed IIC clock SCL high count register
-unsigned long SS_SCL_LCNT;      //Standard speed IIC clock SCL low count register
-unsigned long FS_SCL_HCNT;      //Fast speed IIC clock SCL high count register
-unsigned long FS_SCL_LCNT;      //Fast speed IIC clock SCL low count register
-unsigned long HS_SCL_HCNT;      //High speed IIC clock SCL high count register
-unsigned long HS_SCL_LCNT;      //High speed IIC clock SCL low count register
-unsigned long INTR_STAT;        //IIC Interrupt Status register
-unsigned long INTR_MASK;        //IIC Interrupt Mask register
-unsigned long RAW_INTR_STAT;    //IIC raw interrupt status register
-unsigned long RX_TL;            //IIC receive FIFO Threshold register
-unsigned long TX_TL;            //IIC transmit FIFO Threshold register
-unsigned long CLR_INTR;         //clear combined and individual interrupt register
-unsigned long CLR_RX_UNDER;     //clear RX_UNDER interrupt register
-unsigned long CLR_RX_OVER;      //clear RX_OVER interrupt register
-unsigned long CLR_TX_OVER;      //clear TX_OVER interrupt register
-unsigned long CLR_RD_REQ;       //clear RD_REQ interrupt register
-unsigned long CLR_TX_ABRT;      //clear TX_ABRT interrupt register
-unsigned long CLR_RX_DONE;      //clear RX_DONE interrupt register
-unsigned long CLR_ACTIVITY;     //clear ACTIVITY interrupt register
-unsigned long CLR_STOP_DET;     //clear STOP_DET interrupt register
-unsigned long CLR_START_DET;    //clear START_DET interrupt register
-unsigned long CLR_GEN_CALL;     //clear GEN_CALL interrupt register
-unsigned long ENABLE;           //IIC enable register
-unsigned long STATUS;           //IIC status register
-unsigned long TXFLR;            //IIC transmit FIFO level register
-unsigned long RXFLR;            //IIC receive FIFO level register
-unsigned long TX_ABRT_SOURCE;         //IIC transmit abort source register
-unsigned long ACK_GENERAL_CALL;       //IIC ACK general call register
-unsigned long ENABLE_STATUS;          //IIC enable status register
-unsigned long SDA_CFG0;               //SDA Configuration Register
+	unsigned long I2C_CON;           /* R / W I2C channel 0 control register */
+	unsigned long I2C_TAR;           /* RC I2C channel 0 Target Address */
+	unsigned long I2C_SAR;           /* R / W I2C channel 0 Slave Address */
+	unsigned long I2C_HS_MADDR;      /* R / W I2C cannel 0 HS Master Mode Code Address */
+	unsigned long I2C_DATA_CMD;      /* R / W I2C channel 0 Rx / Tx Data Buffer and Command */
+	unsigned long I2C_SS_SCL_HCNT;   /* R / W I2C channel 0 Standard speed I2C Clock SCL High Count */
+	unsigned long I2C_SS_SCL_LCNT;   /* R / W I2C channel 0 Standard speed I2C Clock SCL Low Count */
+	unsigned long I2C_FS_SCL_HCNT;   /* R / W I2C channel 0 Fast speed I2C Clock SCL High Count */
+	unsigned long I2C_FS_SCL_LCNT;   /* R / W I2C channel 0 Fast speed I2C Clock SCL Low Count */
+	unsigned long I2C_HS_SCL_HCNT;   /* R / W I2C channel 0 High speed I2C Clock SCL High Count */
+	unsigned long I2C_HS_SCL_LCNT;   /* R / W I2C channel 0 High speed I2C Clock SCL Low Count */
+	unsigned long I2C_INTR_STAT;     /* R I2C channel 0 Interrupt Status */
+	unsigned long I2C_INTR_MASK;     /* R / W I2C channel 0 Interrupt Mask */
+	unsigned long I2C_RAW_INTR_STAT; /* R I2C channel 0 Raw Interrupt Status */
+	unsigned long I2C_RX_TL;         /* R / W I2C channel 0 Receive FIFO Threshold */
+	unsigned long I2C_TX_TL;         /* R / W I2C channel 0 Transmit FIFO Threshold */
+	unsigned long I2C_CLR_INTR;      /*  R I2C channel 0 Clear Combined and Individual Interrupts */
+	unsigned long I2C_CLR_RX_UNDER;  /*  R I2C channel 0 Clear RX_UNDER Interrupt */
+	unsigned long I2C_CLR_RX_OVER;   /*  R I2C channel 0 Clear RX_OVER Interrupt */
+	unsigned long I2C_CLR_TX_OVER;   /*  R I2C channel 0 Clear TX_OVER Interrupt */
+	unsigned long I2C_CLR_RD_REQ;    /*  R I2C channel 0 Clear RD_REQ Interrupt */
+	unsigned long I2C_CLR_TX_ABRT;   /*  R I2C channel 0 Clear TX_ABRT Interrupt */
+	unsigned long I2C_CLR_RX_DONE;   /*  R I2C channel 0 Clear RX_DONE Interrupt */
+	unsigned long I2C_CLR_ACTIVITY;  /*  R I2C channel 0 Clear ACTIVITY Interrupt */
+	unsigned long I2C_CLR_STOP_DET;  /*  R I2C channel 0 Clear STOP_DET Interrupt */
+	unsigned long I2C_CLR_START_DET; /*  R I2C channel 0 Clear START_DET Interrupt */
+	unsigned long I2C_CLR_GEN_CALL;  /*  R I2C channel 0 Clear GEN_CALL Interrupt */
+	unsigned long I2C_ENABLE;        /*  R / W I2C channel 0 Enable */
+	unsigned long I2C_STATUS;        /*  R I2C channel 0 Status Register */
+	unsigned long I2C_TXFLR;            /*  R I2C channel 0 Transmit FIFO Level Registers */
+	unsigned long I2C_RXFLR;            /*  R I2C channel 0 Receive FIFO Level Register */
+	unsigned long Reserved0;
+	unsigned long I2C_TX_ABRT_SOURCE;   /*  R / W I2C channel 0 Transmit Abort Status Register */
+	unsigned long Reserved1[5];
+	unsigned long I2C_ACK_GENERAL_CALL; /*  R / W I2C channel 0 ACK General Call Register */
+	unsigned long I2C_ENABLE_STATUS;    /*  R I2C channel 0 Enable Status Register */
+	unsigned long I2C_SDA_CFG;          /*  R / W I2C channel 0 SDA Configuration Register */
 }IMAP_I2C_TypeDef;
 
 #define IMAP_I2C0 ((IMAP_I2C_TypeDef*)I2C0_BASE);
