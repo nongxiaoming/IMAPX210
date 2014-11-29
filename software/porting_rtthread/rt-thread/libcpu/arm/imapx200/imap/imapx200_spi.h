@@ -4,12 +4,12 @@
 #define IMAP_SPI_BASE 0x20DF4000
 typedef struct
 {
- unsigned long CON;	//SPI control
- unsigned long STA;	//SPI status
- unsigned long PIN;    //SPI pin control
- unsigned long PRE;	//SPI baud rate prescaler
- unsigned long TDAT;	//SPI Tx data
- unsigned long RDAT;	//SPI Rx data
+	unsigned long SPCON;  /* R / W SPI control register */
+	unsigned long SPSTA;  /*  RC SPI status register */
+	unsigned long SPPIN;  /*  R / W SPI pin control register */
+	unsigned long SPPRE;  /*  R / W SPI baud rate prescaler register */
+	unsigned long SPTDAT; /*  R / W SPI Tx data register */
+	unsigned long SPRDAT; /*  R SPI Rx data register */
 }IMAP_SPI_TypeDef;
 
 #define IMAP_SPI ((IMAP_SPI_TypeDef*)IMAP_SPI_BASE)
