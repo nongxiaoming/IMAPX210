@@ -10,7 +10,7 @@ typedef struct
 {
 	unsigned long CTRLR0;   /* RW Control Register 0 */
 	unsigned long CTRLR1;   /*  RW Control Register 1 */
-	unsigned long MSSIENR;  /*  RW MSSI Enable Register */
+	unsigned long ENR;  /*  RW MSSI Enable Register */
 	unsigned long MWCR;     /*  RW Microwire Control Register */
 	unsigned long SER;      /*  RW Slave Enable Register Width : MSSI_NUM_SLAVES */
 	unsigned long BAUDR;    /*  RW Baud Rate Select */

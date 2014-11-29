@@ -38,8 +38,8 @@ static rt_err_t configure(struct rt_spi_device *device,
     /* data_width */
     if (configuration->data_width > 3 && configuration->data_width <= 16)
     {
-		spi_bus->ssi->CTLR0 &= ~(0x0f << 12);
-        spi_bus->ssi->CTLR0 |= ((configuration->data_width - 1)<<12);
+		spi_bus->ssi->CTRLR0 &= ~(0x0f << 12);
+		spi_bus->ssi->CTRLR0 |= ((configuration->data_width - 1) << 12);
 
     }
     else
@@ -64,20 +64,20 @@ static rt_err_t configure(struct rt_spi_device *device,
     /* CPOL */
     if (configuration->mode & RT_SPI_CPOL)
     {
-        spi_bus->ssi->CTLR0 |= (0x01 << 7);
+		spi_bus->ssi->CTRLR0 |= (0x01 << 7);
     }
     else
     {
-		spi_bus->ssi->CTLR0 &= ~(0x01 << 7);
+		spi_bus->ssi->CTRLR0 &= ~(0x01 << 7);
     }
     /* CPHA */
     if (configuration->mode & RT_SPI_CPHA)
     {
-		spi_bus->ssi->CTLR0 |= (0x01 << 6);
+		spi_bus->ssi->CTRLR0 |= (0x01 << 6);
     }
     else
     {
-		spi_bus->ssi->CTLR0 &= ~(0x01 << 6);
+		spi_bus->ssi->CTRLR0 &= ~(0x01 << 6);
     }
     ///*Clear the RxFIFO*/
     //{
