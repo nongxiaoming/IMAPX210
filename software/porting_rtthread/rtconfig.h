@@ -74,6 +74,8 @@
 #define RT_USING_SPI
 // <bool name="RT_USING_I2C" description="Using I2C Device Driver Framework" default="true" />
 #define RT_USING_I2C
+// <bool name="RT_USING_RTC" description="Using RTC Device Driver Framework" default="true" />
+#define RT_USING_RTC
 // <section name="RT_USING_CONSOLE" description="Using console" default="true" >
 #define RT_USING_CONSOLE
 // <integer name="RT_CONSOLEBUF_SIZE" description="The buffer size for console output" default="128" />
