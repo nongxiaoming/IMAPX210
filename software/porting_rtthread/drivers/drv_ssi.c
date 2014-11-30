@@ -79,15 +79,17 @@ static rt_err_t configure(struct rt_spi_device *device,
     {
 		spi_bus->ssi->CTRLR0 &= ~(0x01 << 6);
     }
-    ///*Clear the RxFIFO*/
-    //{
-    //    uint8_t i;
-    //    uint16_t temp = temp;
-    //    for (i = 0; i < 8; i++)
-    //    {
-    //        temp = spi_bus->SPI->DR;
-    //    }
-    //}
+	spi_bus->ssi->TXFTLR = 8;
+	spi_bus->ssi->RXFTLR = 8;
+    /*Clear the RxFIFO*/
+    {
+        uint8_t i;
+        uint16_t temp = temp;
+        for (i = 0; i < 8; i++)
+        {
+            temp = spi_bus->ssi->DR;
+        }
+    }
 	/* enable ssi */
 	spi_bus->ssi->ENR = 1;
 	/**/
@@ -128,8 +130,10 @@ static rt_uint32_t xfer(struct rt_spi_device *device, struct rt_spi_message *mes
 				while ((spi_bus->ssi->SR & (0x01 << 2)) == 0x00);
                 // Send the byte
                 spi_bus->ssi->DR = data;
-                //Wait until a data is received
-				while ((spi_bus->ssi->SR & (0x01 << 2)) == 0x00);
+                //Wait until a data is transmited
+				while ((spi_bus->ssi->SR & 0x01) != 0x00);
+				//Wait until a data is recv
+				while ((spi_bus->ssi->SR & 0x08) == 0x00);
                 // Get the received data
                 data = spi_bus->ssi->DR;
                 if (recv_ptr != RT_NULL)
