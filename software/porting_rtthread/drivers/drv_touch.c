@@ -51,8 +51,8 @@ s  A2-A0 MODE SER/DFR PD1-PD0
 #define MAX_X_DEFAULT   0x20
 #define MIN_Y_DEFAULT   0x53
 #define MAX_Y_DEFAULT   0x79b
-#define SAMP_CNT 8                              //the adc array size
-#define SAMP_CNT_DIV2 4                         //the middle of the adc array
+#define SAMP_CNT 4                              //the adc array size
+#define SAMP_CNT_DIV2 2                         //the middle of the adc array
 #define SH   20                                 // Valve value
 
 struct rtgui_touch_device
@@ -139,14 +139,13 @@ static void rtgui_touch_calculate(void)
                 /* calculate to get average value */
                 adc_x = (total_x >> 2);
                 adc_y = (total_y >> 2);
-
-                rt_kprintf("touch->x:%d touch->y:%d\r\n", adc_x, adc_y);
             } /* calculate average */
         } /* read touch */
 
         /* update x,y */
-        touch->x = adc_x;
-        touch->y = adc_y;
+        touch->y = adc_x;
+        touch->x = adc_y;
+		//rt_kprintf("touch->x = %d,touch->y = %d\n",touch->x,touch->y);
     }
 }
 
@@ -270,7 +269,7 @@ rt_err_t rtgui_touch_hw_init(const char *spi_device_name)
         struct rt_spi_configuration cfg;
         cfg.data_width = 8;
         cfg.mode = RT_SPI_MODE_0 | RT_SPI_MSB; /* SPI Compatible Modes 0 */
-        cfg.max_hz = 125 * 1000; /* 125K */
+        cfg.max_hz =  125000*2; /* 125K * 2 */
         rt_spi_configure(spi_device, &cfg);
     }
 

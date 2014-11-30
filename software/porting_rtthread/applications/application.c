@@ -90,7 +90,7 @@ void rt_init_thread_entry(void *parameter)
     {
         extern void rtgui_system_server_init(void);
         extern void application_init(void);
-
+		struct rtgui_calibration_ops *ops;
         rt_device_t lcd;
 
         /* init lcd */
@@ -106,7 +106,9 @@ void rt_init_thread_entry(void *parameter)
             /* init rtgui system server */
             rtgui_system_server_init();
             rt_hw_key_init();
-            rtgui_touch_hw_init("ssi00");
+			rtgui_touch_hw_init("ssi00");
+			ops = calibration_get_ops();
+			rtgui_touch_init(ops);
             /* startup rtgui in demo of RT-Thread/GUI examples */
             application_init();
         }
