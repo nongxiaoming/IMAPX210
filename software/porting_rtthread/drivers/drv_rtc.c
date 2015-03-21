@@ -92,14 +92,6 @@ void rt_hw_rtc_init(void)
 {
     rtc.type    = RT_Device_Class_RTC;
 
-  /*  if (RTC_ReadGPREG(LPC_RTC, 0) != FIRST_DATA)
-    {
-        rt_kprintf("rtc is not configured\n");
-        rt_kprintf("please configure with set_date and set_time\n");
-    }
-    else
-    {
-    }*/
     /* register rtc device */
     rtc.init    = RT_NULL;
     rtc.open    = rt_rtc_open;
