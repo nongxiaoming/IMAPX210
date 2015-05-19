@@ -109,8 +109,7 @@ void rt_init_thread_entry(void *parameter)
 			rtgui_touch_hw_init("ssi00");
 			ops = calibration_get_ops();
 			rtgui_touch_init(ops);
-            /* startup rtgui in demo of RT-Thread/GUI examples */
-            application_init();
+
         }
 
     }
