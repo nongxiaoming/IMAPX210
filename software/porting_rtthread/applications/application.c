@@ -9,7 +9,7 @@
  *
  * Change Logs:
  * Date           Author       Notes
- * 2010-05-02     Aozima       add led function
+ * 2013-06-10     xiaonong      The first version for IMAPX200
  */
 
 #include <rtthread.h>

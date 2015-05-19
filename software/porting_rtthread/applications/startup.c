@@ -9,8 +9,7 @@
  *
  * Change Logs:
  * Date           Author       Notes
- * 2009-01-05     Bernard      first implementation
- * 2010-03-04     Magicoe      for LPC17xx
+ * 2013-06-10     xiaonong      The first version for IMAPX200
  */
 
 #include <rthw.h>

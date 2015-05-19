@@ -81,7 +81,7 @@ static rt_err_t configure(struct rt_spi_device *device,
     }
 	spi_bus->ssi->TXFTLR = 8;
 	spi_bus->ssi->RXFTLR = 8;
-    /*Clear the RxFIFO*/
+    /* Clear the RxFIFO */
     {
         uint8_t i;
         uint16_t temp = temp;
