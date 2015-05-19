@@ -9,7 +9,7 @@
  *
  * Change Logs:
  * Date           Author       Notes
- * 2015-01-22    xiaonong       The first version for LPC15xx
+ * 2015-01-22    xiaonong       The first version for IMAPX200
  */
 
 #ifndef __DRV_I2C_H
@@ -20,7 +20,6 @@
 
 #include "imapx200.h"
 
-//#define I2C_USE_DMA
 
 
 

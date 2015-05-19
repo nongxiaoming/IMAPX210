@@ -9,7 +9,7 @@
 *
 * Change Logs:
 * Date           Author       Notes
-* 2013-06-10     xiaonong      The first version for LPC40xx
+* 2013-06-10     xiaonong      The first version for IMAPX200
 */
 
 
@@ -34,9 +34,9 @@
 #define I2CM_STATUS_ARBLOST         0x20        /*!< Arbitration lost. */
 
 
-struct lpc_i2c_bus
+struct imapx200_i2c_bus
 {
-    LPC_I2C0_Type *I2C;
+	IMAP_I2C_TypeDef *I2C;
     struct rt_i2c_msg *msgs;
     rt_uint32_t num;
     rt_event_t event;
@@ -45,7 +45,7 @@ struct lpc_i2c_bus
 
 static struct lpc_i2c_bus lpc_i2c0;
 
-static  void i2c_set_clock_div(LPC_I2C0_Type *I2Cx, uint32_t clkdiv)
+static  void i2c_set_clock_div(IMAP_I2C_TypeDef *I2Cx, rt_uint32_t clkdiv)
 {
     if ((clkdiv >= 1) && (clkdiv <= 65536))
     {
@@ -57,9 +57,9 @@ static  void i2c_set_clock_div(LPC_I2C0_Type *I2Cx, uint32_t clkdiv)
     }
 }
 
-static void i2c_set_speed(LPC_I2C0_Type *I2Cx, uint32_t speed)
+static void i2c_set_speed(IMAP_I2C_TypeDef *I2Cx, rt_uint32_t speed)
 {
-    uint32_t scl;
+	rt_uint32_t scl;
 
     scl = SystemCoreClock / ((I2Cx->DIV & 0xFFFF) + 1) / speed;
 
@@ -70,7 +70,7 @@ static void i2c_set_speed(LPC_I2C0_Type *I2Cx, uint32_t speed)
 static rt_size_t lpc_i2c_xfer(struct rt_i2c_bus_device *bus,
                               struct rt_i2c_msg msgs[], rt_uint32_t num)
 {
-	  struct lpc_i2c_bus *lpc_i2c = RT_NULL;
+	struct imapx200_i2c_bus *lpc_i2c = RT_NULL;
 	  rt_uint32_t ev = 0;
 	  rt_err_t ret = RT_EOK;
     RT_ASSERT(bus->priv != RT_NULL);
