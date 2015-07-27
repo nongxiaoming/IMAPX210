@@ -9,7 +9,7 @@
  *
  * Change Logs:
  * Date           Author       Notes
- * 2013-06-10    xiaonong       The first version for LPC40xx
+ * 2013-06-10    xiaonong       The first version for IMAPX200
  */
 
 #ifndef __DRV_SPI_H

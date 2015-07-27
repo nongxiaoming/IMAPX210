@@ -9,7 +9,7 @@
  *
  * Change Logs:
  * Date           Author       Notes
- * 2013-11-23     xiaonong      The first version for LPC40xx
+ * 2013-11-23     xiaonong      The first version for IMAPX200
  */
 
 #include <rthw.h>

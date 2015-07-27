@@ -9,13 +9,14 @@
  *
  * Change Logs:
  * Date           Author       Notes
- * 2013-06-10     xiaonong      The first version for LPC40xx
+ * 2013-06-10     xiaonong      The first version for IMAPX200
  */
 
 #include <rthw.h>
 #include <rtthread.h>
 #include <rtdevice.h>
 #include "board.h"
+
 #ifdef RT_USING_SPI
 #include "drv_ssi.h"
 #include "clock.h"

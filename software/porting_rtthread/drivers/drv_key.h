@@ -9,7 +9,7 @@
  *
  * Change Logs:
  * Date           Author       Notes
- * 2013-05-19     Bernard      The first version for LPC40xx
+ * 2013-05-19     Bernard      The first version for IMAPX200
  */
 
 #ifndef __DRV_KEY_H__
